@@ -26,7 +26,7 @@
 // Define constants
 #define ARRAY_SIZE 500 // Maximum # of bytes to send at once
 #define minTime 30 // Minimum survey time [s]            (Recommended: 300)
-#define minAccuracy 40.0 // Minimum survey accuracy [m]  (Recommended: 2.0)
+#define minAccuracy 10.0 // Minimum survey accuracy [m]  (Recommended: 2.0)
 
 SFE_UBLOX_GNSS myGNSS;
 int messageLength;
@@ -88,6 +88,12 @@ void setup()
     while (1); //Freeze
   }
 
+  // Check to see if a survey has already been started because this is gonna make stuff go screwy
+  if (myGNSS.getSurveyInActive() == true) // Disable existing survey
+  {
+    response = myGNSS.disableSurveyMode(); //Disable survey
+  }
+
   if (myGNSS.getSurveyInActive() == true) // Use the helper function
   {
     Serial.print(F("Survey already in progress."));
@@ -96,7 +102,6 @@ void setup()
   {
     //Start survey                      Time     Accuracy
     response = myGNSS.enableSurveyMode(minTime, minAccuracy); //Enable Survey in
-//    response = myGNSS.enableSurveyMode(15, minAccuracy); //Enable Survey in
     if (response == false)
     {
       Serial.println(F("Survey start failed. Freezing..."));
@@ -158,19 +163,20 @@ void setup()
   response &= myGNSS.enableRTCMmessage(UBX_RTCM_1005, COM_PORT_I2C, 1); //Base Station ARP     ||
   response &= myGNSS.enableRTCMmessage(UBX_RTCM_1074, COM_PORT_I2C, 1); //GPS MSM4             ||
   response &= myGNSS.enableRTCMmessage(UBX_RTCM_1077, COM_PORT_I2C, 1); //GPS MSM7             ||
-  response &= myGNSS.enableRTCMmessage(UBX_RTCM_1084, COM_PORT_I2C, 1); //GLONASS MSM4         ||
-  response &= myGNSS.enableRTCMmessage(UBX_RTCM_1087, COM_PORT_I2C, 1); //GLONASS MSM7         ||
-  response &= myGNSS.enableRTCMmessage(UBX_RTCM_1124, COM_PORT_I2C, 1); //BeiDou MSM4          ||
-  response &= myGNSS.enableRTCMmessage(UBX_RTCM_1127, COM_PORT_I2C, 1); //BeiDou MSM7          ||
+//  response &= myGNSS.enableRTCMmessage(UBX_RTCM_1084, COM_PORT_I2C, 1); //GLONASS MSM4         ||
+//  response &= myGNSS.enableRTCMmessage(UBX_RTCM_1087, COM_PORT_I2C, 1); //GLONASS MSM7         ||
+//  response &= myGNSS.enableRTCMmessage(UBX_RTCM_1124, COM_PORT_I2C, 1); //BeiDou MSM4          ||
+//  response &= myGNSS.enableRTCMmessage(UBX_RTCM_1127, COM_PORT_I2C, 1); //BeiDou MSM7          ||
                                                                                              //||
   // Disable RTCM messages                                                                     ||
 //  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1005, COM_PORT_I2C); //Base Station ARP     ||
 //  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1074, COM_PORT_I2C); //GPS MSM4             ||
 //  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1077, COM_PORT_I2C); //GPS MSM7               ||
-//  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1084, COM_PORT_I2C); //GLONASS MSM4           ||
-//  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1087, COM_PORT_I2C); //GLONASS MSM7           ||
-//  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1124, COM_PORT_I2C); //BeiDou MSM4            ||
-//  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1127, COM_PORT_I2C); //BeiDou MSM7            ||
+  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1084, COM_PORT_I2C); //GLONASS MSM4           ||
+  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1087, COM_PORT_I2C); //GLONASS MSM7           ||
+  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1124, COM_PORT_I2C); //BeiDou MSM4            ||
+  response &= myGNSS.disableRTCMmessage(UBX_RTCM_1127, COM_PORT_I2C); //BeiDou MSM7            ||
+
   response &= myGNSS.disableRTCMmessage(UBX_RTCM_1230, COM_PORT_I2C); //Extra data?            ||
   response &= myGNSS.disableRTCMmessage(UBX_RTCM_4072_0, COM_PORT_I2C); //Reference PVT        ||
 //---------------------------------------------------------------------------------------------||
