@@ -1,5 +1,5 @@
 // RTK Base using NS-HP-GN5
-// 07/18/22
+// 09/09/22
 // https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/ 
 
 #include <SPI.h>
@@ -41,7 +41,11 @@ byte loraBytes[ARRAY_SIZE];
 
 String GPGGA;
 float myLat;
+int latMain;
+long latDec;
 float myLong;
+int longMain;
+long longDec;
 float myAlt;
 String myTime;
 int fixType;
@@ -51,7 +55,7 @@ float myAcc;
 bool nmeaStream = false;
 bool rtcmStream = false;
 bool loraOn = false;
-bool dataStream = true;
+bool dataStream = false;
 
 float lats[NUM];
 float longs[NUM];
@@ -142,7 +146,7 @@ void taskData()
     // Reset timer
     dataTimer = millis();
 
-    Serial.printf("%f, %f, %f\n", myLat, myLong, myAlt);
+    Serial.printf("%d.%d, %d.%d, %f\n", latMain, latDec, longMain, longDec, myAlt);
   }
 }
 
@@ -319,7 +323,7 @@ void taskUser()
           Serial.println();
           Serial.println("Latitude, Longitude, Altitude\n");
           Serial.println("Current position:");
-          Serial.printf("%f, %f, %.2f\n", myLat, myLong, myAlt);
+          Serial.printf("%d.%d, %d.%d, %.2f\n", latMain, latDec, longMain, longDec, myAlt);
           Serial.println();
 
           if (accFix)
@@ -581,7 +585,7 @@ void printHelp()
   Serial.println();
   Serial.println("||------------COMMANDS-----------||");
   Serial.println("|| h: Print this help message    ||");
-  Serial.println("|| d: Print single NMEA sentence ||");
+  Serial.println("|| d: Toggle data stream on/off  ||");
   Serial.println("|| n: Toggle NMEA stream on/off  ||");
   Serial.println("|| r: Toggle RTCM stream on/off  ||");
   Serial.println("|| l: Enable/Disable RTCM input  ||");
@@ -627,6 +631,14 @@ void parseGPGGA(String sentence)
 //    Serial.printf("Time: %s\n", myTime);
 
     // Parse latitude
+    latMain = sentence.substring(18,20).toInt();
+    latDec = (sentence.substring(20,22).toInt() * 10000000) / 60;
+    latDec += sentence.substring(23,30).toInt() / 60;
+    if (sentence.substring(31,32) == "S")
+    {
+      latMain *= -1;
+    }
+    
     myLat = sentence.substring(18,20).toFloat();
     myLat += sentence.substring(20,22).toFloat()/60.0;
     myLat += sentence.substring(22,30).toFloat()/60.0;
@@ -634,9 +646,18 @@ void parseGPGGA(String sentence)
     {
       myLat *= -1.0;
     }
-//    Serial.printf("Latitude: %f\n", myLat);
+//    Serial.printf("Latitude: %d.%d\n", latMain, latDec);
 
     // Parse longitude
+    // 12039.9038019,W
+    longMain = sentence.substring(33, 36).toInt();
+    longDec = (sentence.substring(36, 38).toInt() * 10000000) / 60;
+    longDec += sentence.substring(39, 46).toInt() / 60;
+    if (sentence.substring(47,48) == "W") // W
+    {
+      longMain *= -1;
+    }
+
     myLong = sentence.substring(33, 36).toFloat();
     myLong += sentence.substring(36, 38).toFloat()/60.0;
     myLong += sentence.substring(38, 46).toFloat()/60.0;
@@ -644,7 +665,7 @@ void parseGPGGA(String sentence)
     {
       myLong *= -1.0;
     }
-//    Serial.printf("Longitude: %f\n", myLong);
+//    Serial.printf("Longitude: %d.%d\n", longMain, longDec);
 
     // Parse altitude
     myAlt = sentence.substring(58, 64).toFloat();
