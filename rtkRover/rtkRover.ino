@@ -884,7 +884,8 @@ void processBytes(String myString)
 
 void dataFormat(byte format)
 {
-  byte CS = 0x09 + format + 0x00;
+  // byte CS = 0x09 + format + 0x00;
+  byte CS = 0x09 ^ format ^ 0x00;
   
   // NMEA:                                         0x01
   // Binary:                                       0x02                          CS
@@ -918,7 +919,8 @@ void dataFormat(byte format)
 
 void updateRate(byte rate)
 {
-  byte CS = 0x0E + rate;
+  // byte CS = 0x0E + rate;
+  byte CS = 0x0E ^ rate;
   
   // 1Hz: 0x01
   // 50Hz: 0x50
