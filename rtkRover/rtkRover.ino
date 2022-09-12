@@ -1,5 +1,5 @@
 // RTK Base using NS-HP-GN5
-// 09/10/22
+// 09/12/22
 // https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/ 
 
 #include <SPI.h>
