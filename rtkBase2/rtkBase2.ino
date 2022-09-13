@@ -1,4 +1,4 @@
-// RTK Rover using NS-HP-GN5
+// RTK Base using NS-HP-GN5
 // 09/12/22
 // https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/ 
 
@@ -52,7 +52,7 @@ int fixType;
 int numSats;
 float myAcc;
 
-bool nmeaStream = false;
+bool nmeaStream = true;
 bool rtcmStream = false;
 bool loraOn = false;
 bool dataStream = false;
@@ -84,19 +84,19 @@ void setup()
   pinMode(TRIG, OUTPUT);
   pinMode(TRIG, LOW);
 
- // Setup LoRa transceiver module
- LoRa.setPins(ss, rst, dio0);
+  // Setup LoRa transceiver module
+  LoRa.setPins(ss, rst, dio0);
 
- //433E6 for Asia
- //866E6 for Europe
- //915E6 for North America
- while (!LoRa.begin(915E6))
- {
-   Serial.println(".");
-   delay(500);
- }
+  //433E6 for Asia
+  //866E6 for Europe
+  //915E6 for North America
+  while (!LoRa.begin(915E6))
+  {
+    Serial.println(".");
+    delay(500);
+  }
 
- LoRa.setSyncWord(0xF3);
+  LoRa.setSyncWord(0xF3);
   Serial.println("Starting!\n");
   Serial1.flush();
   Serial2.flush();
@@ -113,6 +113,11 @@ void setup()
   clearPort();
   updateRate(0x01);
 
+  delay(500);
+
+  // Tell GPS to enter into self survey mode
+  clearPort();
+  setRTKSurvey(64, 10);
   
   printHelp();
 
@@ -761,6 +766,13 @@ bool printBuffer(byte byteBuffer[], int buffSize)
       Serial.println();
       Serial.println("Unable to interpret response:");
       Serial.println();
+      
+      for (int idx = 0; idx < 9; idx++)
+      {
+        Serial.print(byteBuffer[idx], HEX);
+        Serial.print(" ");
+      }
+      Serial.println("\n");
     }
 
     return false;
@@ -1126,7 +1138,8 @@ void setRTKSurvey(long surveyLength, int surveyDeviation)
   d0 = 0x04; // 4 meters
   l0 = 0x40; // 64 seconds
 
-  byte CS = 0x22+0x01 + l0+l1+l2+l3 +d0+d1+d2+d3;
+//  byte CS = 0x22^0x01 ^ l0^l1^l2^l3 ^ d0^d1^d2^d3;
+  byte CS = 0x22+0x01 + l0+l1+l2+l3 + d0+d1+d2+d3;
   
   //                                             survey
   byte message[] = {0xA0, 0xA1, 0x00, 0x1F, 0x22, 0x01,
