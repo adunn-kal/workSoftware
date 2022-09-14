@@ -1,9 +1,11 @@
 // RTK Rover using NS-HP-GN5
-// 09/12/22
+// 09/14/22
 // https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/ 
 
 #include <SPI.h>
 #include <LoRa.h>
+#include <Wire.h>
+#include <SD.h>
 
 #define RTCM_INTERVAL 1 // ms between RTCM updates
 #define NMEA_INTERVAL 1000 // ms between NMEA updates
@@ -14,8 +16,11 @@
 // Define Pins and Constants
 #define LED 2
 #define TRIG 13
+#define ChS 15
 #define NUM 60 // Standard deviation data
 #define ARRAY_SIZE 300
+//#define FILE_SIZE 121 // # of lines per text file (one extra)
+#define FILE_SIZE 13 // # of lines per text file (one extra)
 
 // Define the pins used by the transceiver module
 #define ss 5
@@ -39,6 +44,14 @@ long dataTimer;
 byte readArray[ARRAY_SIZE];
 byte loraBytes[ARRAY_SIZE];
 
+String timeArray[FILE_SIZE];
+int fixArray[FILE_SIZE];
+int sivArray[FILE_SIZE];
+String latArray[FILE_SIZE];
+String longArray[FILE_SIZE];
+float altArray[FILE_SIZE];
+long fileCounter;
+
 String GPGGA;
 float myLat;
 int latMain;
@@ -55,12 +68,13 @@ float myAcc;
 bool nmeaStream = false;
 bool rtcmStream = false;
 bool loraOn = false;
-bool dataStream = false;
+bool dataStream = true;
 
 float lats[NUM];
 float longs[NUM];
 float alts[NUM];
 int accIDX;
+int arrayCounter = -1;
 float meanLat;
 float meanLong;
 float meanAlt;
@@ -83,6 +97,11 @@ void setup()
   pinMode(LED, OUTPUT);
   pinMode(TRIG, OUTPUT);
   pinMode(TRIG, LOW);
+  pinMode(ChS, OUTPUT);
+
+  SD.begin(ChS);
+
+  sdBegin();
 
  // Setup LoRa transceiver module
  LoRa.setPins(ss, rst, dio0);
@@ -141,12 +160,31 @@ void loop()
 
 void taskData()
 {
-  if (((millis() - dataTimer) > DATA_INTERVAL) and dataStream and fixType)
+  if ((millis() - dataTimer) > DATA_INTERVAL)
   {
-    // Reset timer
+    // Reset timer and increment counter
     dataTimer = millis();
+    arrayCounter += 1;
 
-    Serial.printf("%d.%d, %d.%d, %f\n", latMain, latDec, longMain, longDec, myAlt);
+    // Fill arrays
+    timeArray[arrayCounter] = myTime;
+    fixArray[arrayCounter] = fixType;
+    sivArray[arrayCounter] = numSats;
+    latArray[arrayCounter] = String(latMain) + "." + String(latDec);
+    longArray[arrayCounter] = String(longMain) + "." + String(longDec);
+    altArray[arrayCounter] = myAlt;
+
+    if (arrayCounter >= FILE_SIZE-2)
+    {
+      arrayCounter = -1;
+      sdWrite();
+    }
+
+    // Print data as it comes in if stream is on and fix is acquired
+    if (dataStream and fixType)
+    {
+      Serial.printf("%s, %d, %d, %d.%d, %d.%d, %f\n", myTime, fixType, numSats, latMain, latDec, longMain, longDec, myAlt);
+    }
   }
 }
 
@@ -604,6 +642,69 @@ void printHelp()
   Serial.println("|| S: Set to RTK survey mode     ||");
   Serial.println("|| B: Query RTK base position    ||");
   Serial.println("||-------------------------------||");
+  Serial.println();
+}
+
+void sdBegin()
+{
+  //Check if file exists and create one if not
+  if (!SD.exists("/README.txt"))
+  {
+    Serial.println("Creating lead file");
+
+    File dataFile = SD.open("/README.txt", FILE_WRITE);
+
+    //Create header with title, timestamp, and column names
+    dataFile.println("RTK Rover");
+    dataFile.println("UTC Time, Fix Type, SIV, Latitude, Longitude, Altitude");
+    dataFile.close();
+
+    SD.mkdir("/Data");
+  }
+}
+
+//Write the list to the sd card
+void sdWrite()
+{
+  //Create string for new file name
+  String fileName = "/Data/text_";
+  fileName += ".txt";
+  fileName += String(fileCounter);
+  fileCounter++;
+
+  //Create and open a file
+  File dataFile = SD.open(fileName, FILE_WRITE);
+
+  //Iterate over entire list
+  for (int i = 0; i < FILE_SIZE-1; i++)
+  {    
+    //Create strings for measurement, time, and temp
+    String currentTime = timeArray[i];
+    String currentFix = String(fixArray[i]);
+    String currentSIV = String(sivArray[i]);
+    String currentLat = latArray[i];
+    String currentLong = longArray[i];
+    String currentAlt = String(altArray[i]);
+
+    //Write time, measurement, and temp on one line in file
+    dataFile.print(currentTime);
+    dataFile.print(",");
+    dataFile.print(currentFix);
+    dataFile.print(",");
+    dataFile.print(currentSIV);
+    dataFile.print(",");
+    dataFile.print(currentLat);
+    dataFile.print(",");
+    dataFile.print(currentLong);
+    dataFile.print(",");
+    dataFile.println(currentAlt);
+  }
+
+  //Close file
+  dataFile.close();
+
+  Serial.println();
+  Serial.println("Writing to SD done.");
   Serial.println();
 }
 
