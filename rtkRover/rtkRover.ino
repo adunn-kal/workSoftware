@@ -668,8 +668,8 @@ void sdWrite()
 {
   //Create string for new file name
   String fileName = "/Data/text_";
-  fileName += ".txt";
   fileName += String(fileCounter);
+  fileName += ".txt";
   fileCounter++;
 
   //Create and open a file
