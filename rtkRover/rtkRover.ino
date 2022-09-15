@@ -115,7 +115,7 @@ void setup()
    delay(500);
  }
 
- LoRa.setSyncWord(0xF3);
+  LoRa.setSyncWord(0xF3);
   Serial.println("Starting!\n");
   Serial1.flush();
   Serial2.flush();
@@ -124,13 +124,13 @@ void setup()
   // Data Sheet:
   // https://navspark.mybigcommerce.com/content/AN0039.pdf 
 
-  // Tell GPS to output NMEA
-  clearPort();
-  dataFormat(0x01);
-  
-  // Tell GPS to update at 1Hz
-  clearPort();
-  updateRate(0x01);
+//  // Tell GPS to output NMEA
+//  clearPort();
+//  dataFormat(0x01);
+//  
+//  // Tell GPS to update at 1Hz
+//  clearPort();
+//  updateRate(0x01);
 
   
   printHelp();
