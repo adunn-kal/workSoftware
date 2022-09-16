@@ -31,6 +31,9 @@ long userTimer;
 byte rtcmBytes[1000];
 int rtcmLength;
 
+int numRTCM;
+int rtcmIDXs[10];
+
 bool rtcmStream = false;
 bool loraStream = true;
 
@@ -95,18 +98,53 @@ void taskLORA()
     // Reset timer
     loraTimer = millis();
 
-    // Send data over LoRa
-    sendLora(rtcmBytes, rtcmLength);
+    // Parse bytes
+    parseBytes(rtcmBytes, rtcmLength);
+
+//    Serial.println("\nFull Message:");
+//    for (int i = 0; i < rtcmLength; i++)
+//    {
+//      Serial.print(rtcmBytes[i], HEX);
+//      Serial.print(" ");
+//    }
+//    Serial.println();
+
+    // Send each message individually over LoRa
+    for (int i = 0; i < numRTCM; i++)
+    {
+      // Declare a fresh byte array of a size we can send
+      byte rtcmMessage[90];
+      int index = 0;
+
+      if (rtcmIDXs[i+1] > 0)
+      {
+        for (int idx = rtcmIDXs[i]; idx < rtcmIDXs[i+1]; idx++)
+        {
+          rtcmMessage[index] = rtcmBytes[idx];
+          index++;
+        }
+      }
+
+      else
+      {
+        for (int idx = rtcmIDXs[i]; idx < rtcmLength; idx++)
+        {
+          rtcmMessage[index] = rtcmBytes[idx];
+          index++;
+        }
+      }
+      
+      sendLora(rtcmMessage, index);
+      
+    }
+    
+//    sendLora(rtcmBytes, rtcmLength);
 
     // Clear rtcmBytes for next time
-    Serial.println("Sending Bytes:");
     for (int i = 0; i < rtcmLength+1; i++)
     {
-      Serial.print(rtcmBytes[i], HEX);
-      Serial.print(" ");
       rtcmBytes[i] = 0;
     }
-    Serial.printf("\nMessage Length: %d bytes.\n\n", rtcmLength);
   }
 }
 
@@ -129,12 +167,8 @@ void taskRTCM()
       rtcmBuffer[i] = char(myByte);
       rtcmBytes[i] = myByte;
       i++;
-//      Serial.print(myByte, HEX);
-//      Serial.print(" ");
     }
     rtcmLength = i;
-//    Serial.println();
-//    Serial.printf("Message length: %d\n", rtcmLength);
   
     String rtcmString = String(rtcmBuffer);
     
@@ -253,10 +287,16 @@ void sendLora(byte myByte[], int arraySize)
     myString += " ";
   }
   LoRa.print(myString);
-//  Serial.println(myString);
-  
-//  LoRa.print(myByte);
   LoRa.endPacket();
+
+  // Print Bytes
+  Serial.println("Sending Bytes:");
+  for (int i = 0; i < arraySize; i++)
+  {
+    Serial.print(myByte[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.printf("\nMessage Length: %d bytes.\n\n", arraySize);
 }
 
 void clearPort()
@@ -265,5 +305,30 @@ void clearPort()
   while (Serial2.available())
   {
     Serial2.read();
+  }
+}
+
+void parseBytes(byte myByte[], int arraySize)
+{
+  // Reset number of rtcm messages
+  numRTCM = 0;
+
+  for (int i = 0; i < 10; i++)
+  {
+    rtcmIDXs[i] = 0;
+  }
+  
+  // Parse through all bytes from serial channel
+  for (int i = 0; i < arraySize-1; i++)
+  {
+    // Check groups of two bytes for D3 00
+    if ((myByte[i] == 0xd3) and (myByte[i+1] == 0x00))
+    {
+      // Store index of message and increment the number of RTCM messages
+      rtcmIDXs[numRTCM] = i;
+      numRTCM++;
+//      Serial.printf("New RTCM message found at index: %d!\n", i);
+    }
+    
   }
 }
