@@ -87,8 +87,8 @@ void setup()
   // Start computer-ESP serial
   Serial.begin(115200);
 
-  // Start RTCM serial
-  Serial1.begin(115200, SERIAL_8N1, RX1, TX1);
+//  // Start RTCM serial
+//  Serial1.begin(115200, SERIAL_8N1, RX1, TX1);
 
   // Start ESP-GPS serial
   Serial2.begin(115200, SERIAL_8N1, RX2, TX2);
