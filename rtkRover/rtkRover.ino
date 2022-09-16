@@ -67,7 +67,7 @@ float myAcc;
 
 bool nmeaStream = false;
 bool rtcmStream = false;
-bool loraOn = false;
+bool loraOn = true;
 bool dataStream = true;
 
 float lats[NUM];
