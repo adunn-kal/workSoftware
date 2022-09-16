@@ -7,8 +7,8 @@
 #include <Wire.h>
 #include <SD.h>
 
-#define RTCM_INTERVAL 1000 // ms between RTCM updates
-#define LORA_INTERVAL 1000 // ms between NMEA updates
+#define RTCM_INTERVAL 250 // ms between RTCM updates
+#define LORA_INTERVAL 250 // ms between NMEA updates
 #define USER_INTERVAL 200 // ms between user interaction
 
 // Define Pins and Constants
@@ -90,7 +90,7 @@ void loop()
 // Task to send RTCM bytes
 void taskLORA()
 {
-  if (((millis() - loraTimer) > LORA_INTERVAL) and loraStream)
+  if (((millis() - loraTimer) > LORA_INTERVAL) and loraStream and rtcmLength)
   {
     // Reset timer
     loraTimer = millis();
@@ -100,13 +100,13 @@ void taskLORA()
 
     // Clear rtcmBytes for next time
     Serial.println("Sending Bytes:");
-    for (int i = 0; i < rtcmLength; i++)
+    for (int i = 0; i < rtcmLength+1; i++)
     {
       Serial.print(rtcmBytes[i], HEX);
       Serial.print(" ");
       rtcmBytes[i] = 0;
     }
-    Serial.println();
+    Serial.printf("\nMessage Length: %d bytes.\n\n", rtcmLength);
   }
 }
 
@@ -125,14 +125,16 @@ void taskRTCM()
     Serial2.flush();
     while (Serial2.available())
     {
-      char myChar = Serial2.read();
-      rtcmBuffer[i] = myChar;
-      rtcmBytes[i] = byte(myChar);
+      byte myByte = Serial2.read();
+      rtcmBuffer[i] = char(myByte);
+      rtcmBytes[i] = myByte;
       i++;
-//      Serial.print(byte(myChar), HEX);
+//      Serial.print(myByte, HEX);
 //      Serial.print(" ");
     }
     rtcmLength = i;
+//    Serial.println();
+//    Serial.printf("Message length: %d\n", rtcmLength);
   
     String rtcmString = String(rtcmBuffer);
     
