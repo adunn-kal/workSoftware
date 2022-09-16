@@ -101,13 +101,14 @@ void taskLORA()
     // Parse bytes
     parseBytes(rtcmBytes, rtcmLength);
 
-//    Serial.println("\nFull Message:");
-//    for (int i = 0; i < rtcmLength; i++)
-//    {
-//      Serial.print(rtcmBytes[i], HEX);
-//      Serial.print(" ");
-//    }
-//    Serial.println();
+    Serial.println("\nFull Message:");
+    for (int i = 0; i < rtcmLength; i++)
+    {
+      Serial.print(rtcmBytes[i], HEX);
+      Serial.print(" ");
+    }
+    Serial.println();
+    Serial.printf("Message length: %d bytes\n\n", rtcmLength);
 
     // Send each message individually over LoRa
     for (int i = 0; i < numRTCM; i++)
