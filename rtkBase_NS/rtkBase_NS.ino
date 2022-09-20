@@ -100,6 +100,7 @@ void taskLORA()
 
     // Parse bytes
     parseBytes(rtcmBytes, rtcmLength);
+    if (numRTCM > 2) digitalWrite(LED , HIGH);
 
     Serial.println("\nFull Message:");
     for (int i = 0; i < rtcmLength; i++)
@@ -146,6 +147,8 @@ void taskLORA()
     {
       rtcmBytes[i] = 0;
     }
+
+    digitalWrite(LED, LOW);
   }
 }
 
@@ -154,7 +157,6 @@ void taskRTCM()
   // Display RTCM readings at set RTCM_INTERVAL
   if ((millis() - rtcmTimer) > RTCM_INTERVAL)
   { 
-    digitalWrite(LED, HIGH);
     // Reset timer
     rtcmTimer = millis();
       
@@ -179,7 +181,6 @@ void taskRTCM()
       Serial.println(rtcmString);
       Serial.println();
     }
-    digitalWrite(LED, LOW);
   }
 }
 
