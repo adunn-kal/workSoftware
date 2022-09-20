@@ -19,6 +19,7 @@
 #define ss 5
 #define rst 4
 #define dio0 4
+#define MAX_RTCM 96
 
 // Talk to GPS module, get RTCM
 #define RX2 16
@@ -115,10 +116,12 @@ void taskLORA()
     for (int i = 0; i < numRTCM; i++)
     {
       // Declare a fresh byte array of a size we can send
-      byte rtcmMessage[90];
+      byte rtcmMessage[MAX_RTCM];
       int index = 0;
 
-      if (rtcmIDXs[i+1] > 0)
+      if ((rtcmIDXs[i+1]-rtcmIDXs[i]) > MAX_RTCM) break;
+
+      if (rtcmIDXs[i+1] > 0) 
       {
         for (int idx = rtcmIDXs[i]; idx < rtcmIDXs[i+1]; idx++)
         {
