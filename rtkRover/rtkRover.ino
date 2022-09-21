@@ -165,6 +165,9 @@ void taskData()
 {
   if ((millis() - dataTimer) > DATA_INTERVAL)
   {
+    // Verify that the folder exists
+    if (!SD.exists("/Data")) sdBegin();
+
     // Reset timer and increment counter
     dataTimer = millis();
     arrayCounter += 1;
@@ -652,7 +655,7 @@ void printHelp()
 
 void sdBegin()
 {
-  //Check if file exists and create one if not
+  // Check if file exists and create one if not
   if (!SD.exists("/README.txt"))
   {
     Serial.println("Creating lead file");
@@ -663,9 +666,10 @@ void sdBegin()
     dataFile.println("RTK Rover");
     dataFile.println("UTC Time, Fix Type, SIV, Latitude, Longitude, Altitude");
     dataFile.close();
-
-    SD.mkdir("/Data");
   }
+
+  // Create data folder
+  SD.mkdir("/Data");
 }
 
 //Write the list to the sd card
