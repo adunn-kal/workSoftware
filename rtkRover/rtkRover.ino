@@ -53,6 +53,8 @@ float altArray[FILE_SIZE];
 long fileCounter;
 
 String GPGGA;
+String GPRMC;
+
 float myLat;
 int latMain;
 long latDec;
@@ -61,6 +63,7 @@ int longMain;
 long longDec;
 float myAlt;
 String myTime;
+String myDate;
 int fixType;
 int numSats;
 float myAcc;
@@ -242,6 +245,7 @@ void taskNMEA()
 //    Serial.println();
 
     GPGGA = nmeaString.substring(0, nmeaString.indexOf('\n'));
+    GPRMC = nmeaString.substring(nmeaString.indexOf("$GPRMC"), nmeaString.indexOf("$GPRMC")+55);
     
     if (nmeaStream)
     {
@@ -253,6 +257,7 @@ void taskNMEA()
     digitalWrite(LED, LOW);
 
     parseGPGGA(GPGGA);
+    parseGPRMC(GPRMC);
   }
 }
 
@@ -782,6 +787,22 @@ void parseGPGGA(String sentence)
 
     // Parse Horizontal Dilution of Precision "HDOP"
     myAcc = sentence.substring(54, 57).toFloat();
+  }
+}
+
+void parseGPRMC(String sentence)
+{
+  // If it's a valid sentence
+  if ((sentence.length() > 54) and (sentence.substring(0, 6) == "$GPRMC"))
+  {
+//    Serial.println();
+//    Serial.println(sentence);
+
+    // Parse time
+    String dateSentence = sentence.substring(49, 55);
+    // dd/mm/yyyy
+    myDate = dateSentence.substring(0,2) + "/" + dateSentence.substring(2,4) + "/20" + dateSentence.substring(4,6);
+    Serial.printf("Date: %s\n", myDate);
   }
 }
 
