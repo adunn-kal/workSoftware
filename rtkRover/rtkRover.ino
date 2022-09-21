@@ -45,6 +45,7 @@ byte readArray[ARRAY_SIZE];
 byte loraBytes[ARRAY_SIZE];
 
 String timeArray[FILE_SIZE];
+String dateArray[FILE_SIZE];
 int fixArray[FILE_SIZE];
 int sivArray[FILE_SIZE];
 String latArray[FILE_SIZE];
@@ -53,7 +54,7 @@ float altArray[FILE_SIZE];
 long fileCounter;
 
 String GPGGA;
-String GPRMC;
+String GNRMC;
 
 float myLat;
 int latMain;
@@ -103,6 +104,8 @@ void setup()
   pinMode(ChS, OUTPUT);
 
   SD.begin(ChS);
+
+  sdBegin();
 
  // Setup LoRa transceiver module
  LoRa.setPins(ss, rst, dio0);
@@ -163,15 +166,13 @@ void taskData()
 {
   if ((millis() - dataTimer) > DATA_INTERVAL)
   {
-    // Verify that the files may be written
-    sdBegin();
-
     // Reset timer and increment counter
     dataTimer = millis();
     arrayCounter += 1;
 
     // Fill arrays
     timeArray[arrayCounter] = myTime;
+    dateArray[arrayCounter] = myDate;
     fixArray[arrayCounter] = fixType;
     sivArray[arrayCounter] = numSats;
     latArray[arrayCounter] = String(latMain) + "." + String(latDec);
@@ -181,13 +182,16 @@ void taskData()
     if (arrayCounter >= FILE_SIZE-2)
     {
       arrayCounter = -1;
+
+      // Verify that the files may be written
+      sdBegin();
       sdWrite();
     }
 
     // Print data as it comes in if stream is on and fix is acquired
     if (dataStream and fixType)
     {
-      Serial.printf("%s, %d, %d, %d.%d, %d.%d, %f\n", myTime, fixType, numSats, latMain, latDec, longMain, longDec, myAlt);
+      Serial.printf("%s %s, %d, %d, %d.%d, %d.%d, %f\n", myDate, myTime, fixType, numSats, latMain, latDec, longMain, longDec, myAlt);
     }
   }
 }
@@ -246,7 +250,8 @@ void taskNMEA()
 //    Serial.println();
 
     GPGGA = nmeaString.substring(0, nmeaString.indexOf('\n'));
-    GPRMC = nmeaString.substring(nmeaString.indexOf("$GPRMC"), nmeaString.indexOf("$GPRMC")+55);
+    GNRMC = nmeaString.substring(nmeaString.indexOf("$GNRMC"), nmeaString.indexOf("$GNRMC")+131);
+    GNRMC = GNRMC.substring(0, GNRMC.indexOf('\n'));
     
     if (nmeaStream)
     {
@@ -258,7 +263,7 @@ void taskNMEA()
     digitalWrite(LED, LOW);
 
     parseGPGGA(GPGGA);
-    parseGPRMC(GPRMC);
+    parseGNRMC(GNRMC);
   }
 }
 
@@ -355,10 +360,10 @@ void taskUser()
 
         case 't':
           // t: Print current time
-//          clearPort();
-//          getTime();
           Serial.println();
           Serial.printf("UTC Time: %s\n", myTime);
+          Serial.printf("UTC Date: %s\n", myDate);
+          Serial.printf("UTC dateTime: %s %s\n", myDate, myTime);
           Serial.println();
           break;
 
@@ -690,6 +695,7 @@ void sdWrite()
   {    
     //Create strings for measurement, time, and temp
     String currentTime = timeArray[i];
+    String currentDate = dateArray[i];
     String currentFix = String(fixArray[i]);
     String currentSIV = String(sivArray[i]);
     String currentLat = latArray[i];
@@ -697,6 +703,8 @@ void sdWrite()
     String currentAlt = String(altArray[i]);
 
     //Write time, measurement, and temp on one line in file
+    dataFile.print(currentDate);
+    dataFile.print(" ");
     dataFile.print(currentTime);
     dataFile.print(",");
     dataFile.print(currentFix);
@@ -795,19 +803,20 @@ void parseGPGGA(String sentence)
   }
 }
 
-void parseGPRMC(String sentence)
-{
+void parseGNRMC(String sentence)
+{  
   // If it's a valid sentence
-  if ((sentence.length() > 54) and (sentence.substring(0, 6) == "$GPRMC"))
+  if ((sentence.length() >= 130) and (sentence.substring(0, 6) == "$GNRMC") and (sentence.length() <= 131))
   {
 //    Serial.println();
 //    Serial.println(sentence);
+//    Serial.printf("Length = %d\n", sentence.length());
 
     // Parse time
-    String dateSentence = sentence.substring(49, 55);
-    // dd/mm/yyyy
-    myDate = dateSentence.substring(0,2) + "/" + dateSentence.substring(2,4) + "/20" + dateSentence.substring(4,6);
-    Serial.printf("Date: %s\n", myDate);
+    String dateSentence = sentence.substring(sentence.indexOf(",D")-6, sentence.indexOf(",D"));
+//    Serial.println(dateSentence);
+    myDate = dateSentence.substring(0,2) + "/" + dateSentence.substring(2,4) + "/20" + dateSentence.substring(4,6); // dd/mm/yyyy
+//    Serial.printf("Date: %s\n", myDate);
   }
 }
 
