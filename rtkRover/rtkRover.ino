@@ -104,8 +104,6 @@ void setup()
 
   SD.begin(ChS);
 
-  sdBegin();
-
  // Setup LoRa transceiver module
  LoRa.setPins(ss, rst, dio0);
 
@@ -165,8 +163,8 @@ void taskData()
 {
   if ((millis() - dataTimer) > DATA_INTERVAL)
   {
-    // Verify that the folder exists
-    if (!SD.exists("/Data")) sdBegin();
+    // Verify that the files may be written
+    sdBegin();
 
     // Reset timer and increment counter
     dataTimer = millis();
@@ -668,8 +666,11 @@ void sdBegin()
     dataFile.close();
   }
 
-  // Create data folder
-  SD.mkdir("/Data");
+  // Create data folder if not there
+  if (!SD.exists("/Data"))
+  {
+    SD.mkdir("/Data");
+  }
 }
 
 //Write the list to the sd card
