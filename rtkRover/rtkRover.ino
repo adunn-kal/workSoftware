@@ -1,7 +1,10 @@
 // RTK Rover using NS-HP-GN5
-// 09/14/22
+// 09/22/22
 // https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/ 
+// Data Sheet:
+// https://navspark.mybigcommerce.com/content/AN0039.pdf 
 
+  
 #include <SPI.h>
 #include <LoRa.h>
 #include <Wire.h>
@@ -91,7 +94,7 @@ void setup()
   // Start computer-ESP serial
   Serial.begin(115200);
 
-//  // Start RTCM serial
+ // Start RTCM serial
  Serial1.begin(115200, SERIAL_8N1, RX1, TX1);
 
   // Start ESP-GPS serial
@@ -104,7 +107,6 @@ void setup()
   pinMode(ChS, OUTPUT);
 
   SD.begin(ChS);
-
   sdBegin();
 
  // Setup LoRa transceiver module
@@ -125,18 +127,6 @@ void setup()
   Serial2.flush();
   delay(500);
 
-  // Data Sheet:
-  // https://navspark.mybigcommerce.com/content/AN0039.pdf 
-
-//  // Tell GPS to output NMEA
-//  clearPort();
-//  dataFormat(0x01);
-//  
-//  // Tell GPS to update at 1Hz
-//  clearPort();
-//  updateRate(0x01);
-
-  
   printHelp();
 
 }
@@ -212,11 +202,6 @@ void taskRTCM()
       while (LoRa.available())
       {
         loraData = LoRa.readString();
-
-//        if (rtcmStream)
-//        {
-//          Serial.println(loraData);
-//        }
 
         // Process the string into a byte array
         processBytes(loraData);
@@ -703,8 +688,11 @@ void sdWrite()
     String currentAlt = String(altArray[i]);
 
     //Write time, measurement, and temp on one line in file
-    dataFile.print(currentDate);
-    dataFile.print(" ");
+    if (currentDate.length() > 8) // Only write date if it's valid!
+    {
+      dataFile.print(currentDate);
+      dataFile.print(" ");
+    }
     dataFile.print(currentTime);
     dataFile.print(",");
     dataFile.print(currentFix);
@@ -806,7 +794,8 @@ void parseGPGGA(String sentence)
 void parseGNRMC(String sentence)
 {  
   // If it's a valid sentence
-  if ((sentence.length() >= 130) and (sentence.substring(0, 6) == "$GNRMC") and (sentence.length() <= 131))
+//  if ((sentence.length() >= 130) and (sentence.substring(0, 6) == "$GNRMC") and (sentence.length() <= 131))
+  if (sentence.substring(0, 6) == "$GNRMC")
   {
 //    Serial.println();
 //    Serial.println(sentence);
