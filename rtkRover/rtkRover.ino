@@ -688,11 +688,11 @@ void sdWrite()
     String currentAlt = String(altArray[i]);
 
     //Write time, measurement, and temp on one line in file
-    if (currentDate.length() > 8) // Only write date if it's valid!
-    {
-      dataFile.print(currentDate);
-      dataFile.print(" ");
-    }
+//    if (currentDate.length() > 8) // Only write date if it's valid!
+//    {
+//      dataFile.print(currentDate);
+//      dataFile.print(" ");
+//    }
     dataFile.print(currentTime);
     dataFile.print(",");
     dataFile.print(currentFix);
