@@ -30,10 +30,11 @@
 // Constants
 #define CONVERSION 1000000 // Conversion factor for seconds to microseconds
 #define LIST_SIZE 10 // Seconds to measure for
-#define SLEEP_TIME 50 // Seconds to sleep for
+#define SLEEP_INTERVAL 60 // Interval (in seconds) to sleep/wake
 
 // Clock variables
 DS3232RTC myClock(false); //For non AVR boards (ESP32)
+int SLEEP_TIME;
 const int LED = 2;
 
 // Temp variables
@@ -85,6 +86,7 @@ void loop()
 
   // Go to sleep
   digitalWrite(LED, LOW);
+  updateSleep();
   Serial.printf("Sleeping for %d seconds\n\n", SLEEP_TIME);
   esp_sleep_enable_timer_wakeup(SLEEP_TIME * CONVERSION);
   Serial.flush();
@@ -188,4 +190,33 @@ void sdWrite()
     Serial.printf("%s, %s, %s\n", currentTime, currentTemp, currentHum);
   }
   dataFile.close();
+}
+
+// Update Sleep Time
+void updateSleep()
+{
+  // Update the current minute (0-59) and convert to seconds
+  int nowTime = now()%60;
+  
+
+  // Calculate sleep time based on interval
+  SLEEP_TIME = SLEEP_INTERVAL - (nowTime % SLEEP_INTERVAL);
+
+  // Offset for half the reading time
+  SLEEP_TIME -= (LIST_SIZE / 2);
+
+  // Take off one second to account for wakeup
+  SLEEP_TIME -= 2;
+
+  // If something went wrong and the sleep time is too high, sleep for the interval
+  if (SLEEP_TIME > SLEEP_INTERVAL)
+  {
+    SLEEP_TIME = SLEEP_INTERVAL;
+  }
+
+  if (SLEEP_TIME <= 0)
+  {
+    // Actually only sleep for 1 second
+    SLEEP_TIME = 1;
+  }
 }
