@@ -16,7 +16,7 @@
    ---------------------
    For Temp/Humidity:
    Black - GND
-   Red - 15
+   Red - Vcc
    Yellow - 22
    Green - 21
    ---------------------
@@ -27,12 +27,14 @@
 #include <DS3232RTC.h>
 #include <Adafruit_SHT31.h>
 
-// For sleep
-const long CONVERSION = 1000000; // Conversion factor for seconds to microseconds
-long SLEEP_TIME = 10;
+// Constants
+#define CONVERSION 1000000 // Conversion factor for seconds to microseconds
+#define LIST_SIZE 10 // Seconds to measure for
+#define SLEEP_TIME 50 // Seconds to sleep for
 
 // Clock variables
 DS3232RTC myClock(false); //For non AVR boards (ESP32)
+const int LED = 2;
 
 // Temp variables
 Adafruit_SHT31 tempSensor = Adafruit_SHT31();
@@ -44,6 +46,10 @@ const int CS = 5; // Chip select pin
 long myTime;
 float myTemp;
 float myHum;
+
+long timeArray[LIST_SIZE];
+float tempArray[LIST_SIZE];
+float humArray[LIST_SIZE];
 
 //-----------------------------------------------------------------------------------
 void setup()
@@ -57,6 +63,7 @@ void setup()
   // Setup for clock
   myClock.begin(); // Initializes I2C bus for non AVR boards
   setSyncProvider(myClock.get); // Set the external RTC as the time keeper
+  pinMode(LED, OUTPUT);
 
   // Setup for temp sensor
   tempSensor.begin(0x44); //Hex Address for new I2C pins
@@ -68,6 +75,8 @@ void setup()
 
 void loop()
 {
+  digitalWrite(LED, HIGH);
+  
   // Get measurements
   getData();
   
@@ -75,6 +84,7 @@ void loop()
   sdWrite();
 
   // Go to sleep
+  digitalWrite(LED, LOW);
   Serial.printf("Sleeping for %d seconds\n\n", SLEEP_TIME);
   esp_sleep_enable_timer_wakeup(SLEEP_TIME * CONVERSION);
   Serial.flush();
@@ -86,14 +96,39 @@ void loop()
 // Get current time, temp, and humidity
 void getData()
 {
-  myTime = now(); // Unix time
+  int counter;
+  long lastTime;
 
-  myTemp = tempSensor.readTemperature();
-  myTemp *= 9.0;
-  myTemp /= 5.0;
-  myTemp += 32.0;
+//  Serial.printf("numPoints = %d\ncounter = %d\n\n", numPoints, counter);
+  
+  // Loop through as many times as needed
+  while (counter < LIST_SIZE)
+  {    
+    // One measurement per second
+    if ((millis() - lastTime) > 1000)
+    { 
+      // Get measurements
+      myTime = now(); // Unix time
+    
+      myTemp = tempSensor.readTemperature();
+      myTemp *= 9.0;
+      myTemp /= 5.0;
+      myTemp += 32.0;
+    
+      myHum = tempSensor.readHumidity();
 
-  myHum = tempSensor.readHumidity();
+      // Fill arrays
+      timeArray[counter] = myTime;
+      tempArray[counter] = myTemp;
+      humArray[counter] = myHum;
+
+      Serial.printf("%d, %f, %f\n", myTime, myTemp, myHum);
+
+      // Increment counter and reset timer
+      counter++;
+      lastTime = millis();
+    }
+  }
 }
 
 
@@ -135,18 +170,21 @@ void sdWrite()
   Serial.print(": ");
   Serial.println(String(now()));
 
-  //Create strings for measurement, time, and temp
-  String currentTime = String(myTime);
-  String currentTemp = String(myTemp);
-  String currentHum = String(myHum);
+  for (int i = 0; i < LIST_SIZE; i++)
+  {
+    //Create strings for measurement, time, and temp
+    String currentTime = String(timeArray[i]);
+    String currentTemp = String(tempArray[i]);
+    String currentHum = String(humArray[i]);
+  
+    //Write time, measurement, and temp on one line in file
+    dataFile.print(currentTime);
+    dataFile.print(",");
+    dataFile.print(currentTemp);
+    dataFile.print(",");
+    dataFile.println(currentHum);
 
-  //Write time, measurement, and temp on one line in file
-  dataFile.print(currentTime);
-  dataFile.print(",");
-  dataFile.print(currentTemp);
-  dataFile.print(",");
-  dataFile.println(currentHum);
+    Serial.printf("%s, %s, %s\n", currentTime, currentTemp, currentHum);
+  }
   dataFile.close();
-
-  Serial.printf("%s, %s, %s\n", currentTime, currentTemp, currentHum);
 }
