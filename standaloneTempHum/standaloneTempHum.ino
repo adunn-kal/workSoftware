@@ -96,7 +96,7 @@ void loop()
 // Get current time, temp, and humidity
 void getData()
 {
-  int counter;
+  int counter = 0;
   long lastTime;
 
 //  Serial.printf("numPoints = %d\ncounter = %d\n\n", numPoints, counter);
@@ -129,6 +129,7 @@ void getData()
       lastTime = millis();
     }
   }
+  Serial.println();
 }
 
 
@@ -162,13 +163,13 @@ void sdWrite()
   fileName += String(now(), HEX);
   fileName += ".txt";
 
-  //Create and open a file
-  File dataFile = SD.open(fileName, FILE_WRITE);
-
   Serial.print("Writing ");
   Serial.print(fileName);
   Serial.print(": ");
   Serial.println(String(now()));
+
+  //Create and open a file
+  File dataFile = SD.open(fileName, FILE_WRITE);
 
   for (int i = 0; i < LIST_SIZE; i++)
   {
