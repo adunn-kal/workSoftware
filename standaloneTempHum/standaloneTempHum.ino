@@ -65,6 +65,7 @@ void setup()
   myClock.begin(); // Initializes I2C bus for non AVR boards
   setSyncProvider(myClock.get); // Set the external RTC as the time keeper
   pinMode(LED, OUTPUT);
+  myTime = now();
 
   // Setup for temp sensor
   tempSensor.begin(0x44); //Hex Address for new I2C pins
@@ -76,7 +77,7 @@ void setup()
 
 void loop()
 {
-  digitalWrite(LED, HIGH);
+  if (myTime > 6000) digitalWrite(LED, HIGH);
   
   // Get measurements
   getData();
