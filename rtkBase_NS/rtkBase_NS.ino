@@ -19,7 +19,7 @@
 #define ss 5
 #define rst 4
 #define dio0 4
-#define MAX_RTCM 96
+#define MAX_RTCM 100
 
 // Talk to GPS module, get RTCM
 #define RX2 16
@@ -103,14 +103,14 @@ void taskLORA()
     parseBytes(rtcmBytes, rtcmLength);
     if (numRTCM > 2) digitalWrite(LED , HIGH);
 
-    Serial.println("\nFull Message:");
-    for (int i = 0; i < rtcmLength; i++)
-    {
-      Serial.print(rtcmBytes[i], HEX);
-      Serial.print(" ");
-    }
-    Serial.println();
-    Serial.printf("Message length: %d bytes\n\n", rtcmLength);
+//    Serial.println("\nFull Message:");
+//    for (int i = 0; i < rtcmLength; i++)
+//    {
+//      Serial.print(rtcmBytes[i], HEX);
+//      Serial.print(" ");
+//    }
+//    Serial.println();
+//    Serial.printf("Message length: %d bytes\n\n", rtcmLength);
 
     // Send each message individually over LoRa
     for (int i = 0; i < numRTCM; i++)
