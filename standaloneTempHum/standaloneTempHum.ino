@@ -29,8 +29,8 @@
 
 // Constants
 #define CONVERSION 1000000 // Conversion factor for seconds to microseconds
-#define LIST_SIZE 10 // Seconds to measure for
-#define SLEEP_INTERVAL 60 // Interval (in seconds) to sleep/wake
+#define LIST_SIZE 60 // Seconds to measure for
+#define SLEEP_INTERVAL 60*15 // Interval (in seconds) to sleep/wake
 
 // Clock variables
 DS3232RTC myClock(false); //For non AVR boards (ESP32)
