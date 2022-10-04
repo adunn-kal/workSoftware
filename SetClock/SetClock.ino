@@ -38,7 +38,7 @@ DS3232RTC RTC(false); //Instantiate DS3232 object
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   RTC.begin();
 
 //  byte buf[8] = {0, 0, 1, 0, 0, 0, 0, 0}; //https://datasheets.maximintegrated.com/en/ds/DS3231.pdf
