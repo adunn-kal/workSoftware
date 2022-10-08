@@ -11,7 +11,7 @@
 #include <SD.h>
 
 #define RTCM_INTERVAL 1 // ms between RTCM updates
-#define NMEA_INTERVAL 1000 // ms between NMEA updates
+#define NMEA_INTERVAL 2500 // ms between NMEA updates
 #define USER_INTERVAL 200 // ms between user interaction
 #define DATA_INTERVAL 5000 // ms between user interaction
 #define ACCURACY_INTERVAL  NMEA_INTERVAL // Set accuracy interval to the same as NMEA
@@ -235,8 +235,8 @@ void taskNMEA()
 //    Serial.println();
 
     GPGGA = nmeaString.substring(0, nmeaString.indexOf('\n'));
-    GNRMC = nmeaString.substring(nmeaString.indexOf("$GNRMC"), nmeaString.indexOf("$GNRMC")+131);
-    GNRMC = GNRMC.substring(0, GNRMC.indexOf('\n'));
+//    GNRMC = nmeaString.substring(nmeaString.indexOf("$GNRMC"), nmeaString.indexOf("$GNRMC")+131);
+//    GNRMC = GNRMC.substring(0, GNRMC.indexOf('\n'));
     
     if (nmeaStream)
     {
@@ -248,7 +248,7 @@ void taskNMEA()
     digitalWrite(LED, LOW);
 
     parseGPGGA(GPGGA);
-    parseGNRMC(GNRMC);
+//    parseGNRMC(GNRMC);
   }
 }
 
