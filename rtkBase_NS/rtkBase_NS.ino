@@ -7,9 +7,10 @@
 #include <Wire.h>
 #include <SD.h>
 
-#define RTCM_INTERVAL 250 // ms between RTCM updates
-#define LORA_INTERVAL 250 // ms between NMEA updates
-#define USER_INTERVAL 200 // ms between user interaction
+#define RTCM_INTERVAL 50 // ms between RTCM updates
+#define LORA_INTERVAL 50 // ms between NMEA updates
+#define USER_INTERVAL 500 // ms between user interaction
+#define MAX_RTCM 30
 
 // Define Pins and Constants
 #define LED 2
@@ -19,7 +20,6 @@
 #define ss 5
 #define rst 4
 #define dio0 4
-#define MAX_RTCM 100
 
 // Talk to GPS module, get RTCM
 #define RX2 16
@@ -103,43 +103,103 @@ void taskLORA()
     parseBytes(rtcmBytes, rtcmLength);
     if (numRTCM > 2) digitalWrite(LED , HIGH);
 
-//    Serial.println("\nFull Message:");
-//    for (int i = 0; i < rtcmLength; i++)
-//    {
-//      Serial.print(rtcmBytes[i], HEX);
-//      Serial.print(" ");
-//    }
-//    Serial.println();
-//    Serial.printf("Message length: %d bytes\n\n", rtcmLength);
+    Serial.println("\nFull Message:");
+    for (int i = 0; i < rtcmLength; i++)
+    {
+      Serial.print(rtcmBytes[i], HEX);
+      Serial.print(" ");
+    }
+    Serial.println();
+    Serial.printf("Message length: %d bytes\n\n", rtcmLength);
 
     // Send each message individually over LoRa
     for (int i = 0; i < numRTCM; i++)
     {
-      // Declare a fresh byte array of a size we can send
-      byte rtcmMessage[MAX_RTCM];
-      int index = 0;
-
-      if ((rtcmIDXs[i+1]-rtcmIDXs[i]) > MAX_RTCM) break;
-
-      if (rtcmIDXs[i+1] > 0) 
+      // If the message is too long to send in one packet
+//      if ((rtcmIDXs[i+1]-rtcmIDXs[i]) > MAX_RTCM)
+      if (rtcmLength > MAX_RTCM)
       {
-        for (int idx = rtcmIDXs[i]; idx < rtcmIDXs[i+1]; idx++)
+        // Determine how many packets you will need
+        int numPackets = rtcmLength/MAX_RTCM;
+        if (rtcmLength%MAX_RTCM > 0) numPackets++;
+        
+        // Calculate strating and ending indeces
+        int startIDX = rtcmIDXs[i];
+        int endIDX = rtcmLength;
+
+        // Split the message into as many packets as needed and send them
+        for (int packetNumber = 0; packetNumber < numPackets; packetNumber++)
         {
-          rtcmMessage[index] = rtcmBytes[idx];
-          index++;
+          // Declare a fresh byte array of a size we can send, reset the number of bytes
+          byte rtcmMessage[MAX_RTCM+3];
+          int index = 3;
+
+          // Setup first two bytes with message information
+          rtcmMessage[0] = byte(160); // Special indicator
+          rtcmMessage[1] = byte(packetNumber+1); // Indicate which packet this is
+          rtcmMessage[2] = byte(numPackets); // Indicate the number of packets to expect
+        
+          // Determine ending index for this packet
+          int currentEndIDX = min(endIDX, startIDX+MAX_RTCM);
+          
+          // Start at given index, end just before next index
+          for (int idx = startIDX; idx < currentEndIDX; idx++)
+          {
+            // Start 3 bytes after the start to account for the message information
+            rtcmMessage[index] = rtcmBytes[idx];
+            index++;
+          }
+
+          // Update start index for next pass
+          startIDX += index-3;
+
+          Serial.printf("Partial message %d/%d:\n", packetNumber+1, numPackets); 
+          for (int i = 0; i < sizeof(rtcmMessage); i++)
+          {
+            Serial.print(rtcmMessage[i], HEX);
+            Serial.print(" ");
+          }
+          Serial.println();
+
+          // Send message
+          sendLora(rtcmMessage, index);
         }
       }
 
+      //------------------------------------------------------------------------------
+      // Otherwise, the message is short enough to send in one packet
       else
       {
-        for (int idx = rtcmIDXs[i]; idx < rtcmLength; idx++)
-        {
-          rtcmMessage[index] = rtcmBytes[idx];
-          index++;
-        }
-      }
+        // Declare a fresh byte array of a size we can send, reset the number of bytes
+        byte rtcmMessage[MAX_RTCM];
+        int index = 0;
       
-      sendLora(rtcmMessage, index);
+        // Check to see if there is another message after this one
+        if (rtcmIDXs[i+1] > 0) 
+        {
+          // Start at given index, end just before next index
+          for (int idx = rtcmIDXs[i]; idx < rtcmIDXs[i+1]; idx++)
+          {
+            rtcmMessage[index] = rtcmBytes[idx];
+            index++;
+          }
+        }
+  
+        // Otherwise, this is the last message
+        else
+        {
+          // Start at given index, end after the message length
+          for (int idx = rtcmIDXs[i]; idx < rtcmLength; idx++)
+          {
+            rtcmMessage[index] = rtcmBytes[idx];
+            index++;
+          }
+        }
+  
+        // Sends the current message
+        sendLora(rtcmMessage, index);
+      }
+      //------------------------------------------------------------------------------
       
     }
     

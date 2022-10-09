@@ -12,7 +12,7 @@
 
 #define RTCM_INTERVAL 1 // ms between RTCM updates
 #define NMEA_INTERVAL 2500 // ms between NMEA updates
-#define USER_INTERVAL 200 // ms between user interaction
+#define USER_INTERVAL 500 // ms between user interaction
 #define DATA_INTERVAL 5000 // ms between user interaction
 #define ACCURACY_INTERVAL  NMEA_INTERVAL // Set accuracy interval to the same as NMEA
 
@@ -46,6 +46,10 @@ long dataTimer;
 
 byte readArray[ARRAY_SIZE];
 byte loraBytes[ARRAY_SIZE];
+byte fullMessage[ARRAY_SIZE];
+int packetNumber = 0;
+int numPackets = 0;
+int packetIndex = 0;
 
 String timeArray[FILE_SIZE];
 String dateArray[FILE_SIZE];
@@ -128,6 +132,10 @@ void setup()
   delay(500);
 
   printHelp();
+
+  packetNumber = 0;
+  numPackets = 0;
+  packetIndex = 0;
 
 }
 
@@ -215,7 +223,8 @@ void taskNMEA()
   // Display NMEA readings at set RTCM_INTERVAL
   if ((millis() - nmeaTimer) > NMEA_INTERVAL)
   { 
-    digitalWrite(LED, HIGH);
+    if (fixType) digitalWrite(LED, HIGH);
+    
     // Reset timer
     nmeaTimer = millis();
       
@@ -987,6 +996,65 @@ void processBytes(String myString)
     myBytes[j] = loraBytes[j];
   }
 
+  // Append messages to fullMessage
+  //--------------------------------------------------
+  // If the message is part of a larger message
+  if (myBytes[0] == byte(160))
+  {
+    // Update packet information
+    if (myBytes[1] == packetNumber+1)
+    {
+      packetNumber = myBytes[1];
+      numPackets = myBytes[2];
+    }
+
+    else
+    {
+      Serial.println("Got screwed up in processBytes()\n");
+
+      // Reset the packet info and index
+      packetNumber = 0;
+      numPackets = 0;
+      packetIndex = 0;
+    }
+
+    // Input packet data into fullMessage
+    for (int j = 3; j < sizeof(myBytes); j++)
+    {
+      fullMessage[packetIndex] = myBytes[j];
+      packetIndex++;
+    }
+
+//    Serial.printf("Partial message %d/%d:\n", packetNumber, numPackets);
+//    for (int j = 0; j < packetIndex; j++)
+//    {
+//      Serial.print(fullMessage[j], HEX);
+//      Serial.print(" ");
+//    }
+//    Serial.println();
+
+    // Only write data when the entire message has been created
+    if (packetNumber == numPackets)
+    {
+//      Serial.println("Writing full message!\n");
+      
+      // Reset the packet info and index
+      packetNumber = 0;
+      numPackets = 0;
+      packetIndex = 0;
+
+      // Write message
+      Serial1.write(fullMessage, packetIndex);
+    }
+  }
+  //--------------------------------------------------
+
+  else
+  {
+//    Serial.println("Writing normal message");
+    Serial1.write(myBytes, sizeof(myBytes));
+  }
+  
   if (rtcmStream)
   {
     Serial.println();
@@ -1000,8 +1068,6 @@ void processBytes(String myString)
     Serial.println();
     
   }
-
-  Serial1.write(myBytes, sizeof(myBytes));
 }
 
 //-----------------------------------------------------------------------
