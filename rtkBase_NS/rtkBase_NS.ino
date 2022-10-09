@@ -10,7 +10,7 @@
 #define RTCM_INTERVAL 50 // ms between RTCM updates
 #define LORA_INTERVAL 50 // ms between NMEA updates
 #define USER_INTERVAL 500 // ms between user interaction
-#define MAX_RTCM 30
+#define MAX_RTCM 70
 
 // Define Pins and Constants
 #define LED 2
