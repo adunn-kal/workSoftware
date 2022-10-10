@@ -21,7 +21,7 @@
 #define TRIG 13
 #define ChS 15
 #define NUM 60 // Standard deviation data
-#define ARRAY_SIZE 300
+#define ARRAY_SIZE 1000
 //#define FILE_SIZE 121 // # of lines per text file (one extra)
 #define FILE_SIZE 13 // # of lines per text file (one extra)
 
@@ -77,7 +77,7 @@ int numSats;
 float myAcc;
 
 bool nmeaStream = false;
-bool rtcmStream = false;
+bool rtcmStream = true;
 bool loraOn = true;
 bool dataStream = true;
 
@@ -999,7 +999,7 @@ void processBytes(String myString)
   // Append messages to fullMessage
   //--------------------------------------------------
   // If the message is part of a larger message
-  if (myBytes[0] == byte(160))
+  if (myBytes[0] == 0xa0)
   {
     // Update packet information
     if (myBytes[1] == packetNumber+1)
@@ -1010,12 +1010,23 @@ void processBytes(String myString)
 
     else
     {
-      Serial.println("Got screwed up in processBytes()\n");
+      // If it's the same message as before, just ignore it
+      if (myBytes[1] == packetNumber)
+      {
+        // Do nothing
+      }
 
-      // Reset the packet info and index
-      packetNumber = 0;
-      numPackets = 0;
-      packetIndex = 0;
+      else
+      {
+        Serial.println("Got screwed up in processBytes()");
+        Serial.printf("Expected message #%d\n", packetNumber+1);
+        Serial.printf("Got #%d\n\n", myBytes[1]);
+  
+        // Reset the packet info and index
+        packetNumber = 0;
+        numPackets = 0;
+        packetIndex = 0;
+      }
     }
 
     // Input packet data into fullMessage
@@ -1025,49 +1036,62 @@ void processBytes(String myString)
       packetIndex++;
     }
 
-//    Serial.printf("Partial message %d/%d:\n", packetNumber, numPackets);
-//    for (int j = 0; j < packetIndex; j++)
+//    if (rtcmStream)
 //    {
-//      Serial.print(fullMessage[j], HEX);
-//      Serial.print(" ");
+//      Serial.printf("Partial message %d/%d:\n", packetNumber, numPackets);
+//      for (int j = 0; j < packetIndex; j++)
+//      {
+//        Serial.print(fullMessage[j], HEX);
+//        Serial.print(" ");
+//      }
+//      Serial.println();
 //    }
-//    Serial.println();
 
     // Only write data when the entire message has been created
     if (packetNumber == numPackets)
     {
 //      Serial.println("Writing full message!\n");
       
+      if (rtcmStream)
+      {
+        for (int j = 0; j < packetIndex; j++)
+        {
+          Serial.print(fullMessage[j], HEX);
+          Serial.print(" ");
+        }
+        Serial.println();
+        Serial.printf("Message length: %d bytes\n", packetIndex);
+        Serial.println();
+      }
+      
+      if (packetIndex > 23) Serial1.write(fullMessage, packetIndex);
+
       // Reset the packet info and index
       packetNumber = 0;
       numPackets = 0;
       packetIndex = 0;
-
-      // Write message
-      Serial1.write(fullMessage, packetIndex);
     }
   }
   //--------------------------------------------------
 
   else
   {
-//    Serial.println("Writing normal message");
+    if (rtcmStream)
+    {
+      Serial.println();
+      for (int j = 0; j < sizeof(myBytes); j++)
+      {
+        Serial.print(myBytes[j], HEX);
+        Serial.print(" ");
+      }
+      Serial.println();
+      Serial.printf("Message length: %d bytes\n", sizeof(myBytes));
+      Serial.println();
+    }
+    
     Serial1.write(myBytes, sizeof(myBytes));
   }
   
-  if (rtcmStream)
-  {
-    Serial.println();
-    for (int j = 0; j < sizeof(myBytes); j++)
-    {
-      Serial.print(myBytes[j], HEX);
-      Serial.print(" ");
-    }
-    Serial.println();
-    Serial.printf("Message length: %d bytes\n", sizeof(myBytes));
-    Serial.println();
-    
-  }
 }
 
 //-----------------------------------------------------------------------
