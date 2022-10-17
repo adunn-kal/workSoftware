@@ -12,6 +12,7 @@
 #define USER_INTERVAL 500 // ms between user interaction
 #define MAX_RTCM 70
 #define ARRAY_SIZE 1000
+#define TRY_SEND 3 // How many times to send partial rtcm messages
 
 // Define Pins and Constants
 #define LED 2
@@ -38,6 +39,7 @@ int rtcmIDXs[ARRAY_SIZE];
 
 bool rtcmStream = false;
 bool loraStream = true;
+bool LoraBytes = false;
 
 void setup()
 {
@@ -65,6 +67,7 @@ void setup()
   }
 
   LoRa.setSyncWord(0xF3);
+  LoRa.setSpreadingFactor(12); // ranges from 6-12,default 7 (Higher is slower but better)
   Serial.println("Starting!\n");
   Serial1.flush();
   Serial2.flush();
@@ -112,9 +115,6 @@ void taskLORA()
     }
     Serial.println();
     Serial.printf("Message length: %d bytes\n\n", rtcmLength);
-
-
-
 
 
     // Send each message individually over LoRa
@@ -166,8 +166,6 @@ void taskLORA()
 
           // Calculate starting and ending indeces
           int endIndex = min(currentIndex+MAX_RTCM, currentIndex+remainingLength);
-//          int endIndex = currentIndex + currentLength;
-
           
           Serial.printf("Packet number %d/%d\n", packetNumber+1, numPackets);
           Serial.printf("Bytes %d to %d\n", currentIndex, endIndex);
@@ -201,10 +199,15 @@ void taskLORA()
 //          Serial.println();
 
           // Send message
-          for (int i = 0; i < 1; i++)
+          if (packetNumber == 0)
           {
-            sendLora(rtcmMessage, index);
+            for (int i = 0; i < TRY_SEND; i++)
+            {
+              sendLora(rtcmMessage, index);
+            }
           }
+
+          else sendLora(rtcmMessage, index);
         }
       }
     }
@@ -219,175 +222,6 @@ void taskLORA()
     digitalWrite(LED, LOW);
   }
 }
-
-
-
-//      // If the message is too long to send in one packet
-//      //-----------------------------------------------------------------------------
-//      if (min(rtcmLength, (rtcmIDXs[i+1]-rtcmIDXs[i])) > MAX_RTCM)
-//      {
-//        if (rtcmIDXs[i+1] > 0)
-//        {
-//          if ((rtcmIDXs[i+1]-rtcmIDXs[i]) > MAX_RTCM)
-//          {
-//            int currentLength = rtcmIDXs[i+1]-rtcmIDXs[i];
-//            
-//            // Determine how many packets you will need
-//            int numPackets = currentLength / MAX_RTCM;
-//            if (currentLength % MAX_RTCM > 0) numPackets++;
-//  
-//            // Calculate strating and ending indeces
-//            int startIDX = rtcmIDXs[i];
-//            int endIDX = currentLength;
-//  
-//            // Split the message into as many packets as needed and send them
-//            for (int packetNumber = 0; packetNumber < numPackets; packetNumber++)
-//            {
-//              // Declare a fresh byte array of a size we can send, reset the number of bytes
-//              byte rtcmMessage[MAX_RTCM + 3];
-//              int index = 3;
-//  
-//              // Setup first two bytes with message information
-//              rtcmMessage[0] = byte(160); // Special indicator
-//              rtcmMessage[1] = byte(packetNumber + 1); // Indicate which packet this is
-//              rtcmMessage[2] = byte(numPackets); // Indicate the number of packets to expect
-//  
-//              // Determine ending index for this packet
-//              int currentEndIDX = min(endIDX, startIDX + MAX_RTCM);
-//  
-//              // Start at given index, end just before next index
-//              for (int idx = startIDX; idx < currentEndIDX; idx++)
-//              {
-//                // Start 3 bytes after the start to account for the message information
-//                rtcmMessage[index] = rtcmBytes[idx];
-//                index++;
-//              }
-//  
-//              // Update start index for next pass
-//              startIDX += index - 3;
-//  
-//              Serial.printf("Partial message %d/%d:\n", packetNumber + 1, numPackets);
-//              for (int i = 0; i < sizeof(rtcmMessage); i++)
-//              {
-//                Serial.print(rtcmMessage[i], HEX);
-//                Serial.print(" ");
-//              }
-//              Serial.println();
-//  
-//              // Send message
-//              for (int i = 0; i < 2; i++)
-//              {
-//                sendLora(rtcmMessage, index);
-//              }
-//            }
-//          }
-//        }
-//  
-//        // If there's only 1 message
-//        else
-//        {
-//          if (rtcmLength > MAX_RTCM)
-//          {
-//            // Determine how many packets you will need
-//            int numPackets = rtcmLength / MAX_RTCM;
-//            if (rtcmLength % MAX_RTCM > 0) numPackets++;
-//  
-//            // Calculate strating and ending indeces
-//            int startIDX = rtcmIDXs[i];
-//            int endIDX = rtcmLength;
-//  
-//            // Split the message into as many packets as needed and send them
-//            for (int packetNumber = 0; packetNumber < numPackets; packetNumber++)
-//            {
-//              // Declare a fresh byte array of a size we can send, reset the number of bytes
-//              byte rtcmMessage[MAX_RTCM + 3];
-//              int index = 3;
-//  
-//              // Setup first two bytes with message information
-//              rtcmMessage[0] = byte(160); // Special indicator
-//              rtcmMessage[1] = byte(packetNumber + 1); // Indicate which packet this is
-//              rtcmMessage[2] = byte(numPackets); // Indicate the number of packets to expect
-//  
-//              // Determine ending index for this packet
-//              int currentEndIDX = min(endIDX, startIDX + MAX_RTCM);
-//  
-//              // Start at given index, end just before next index
-//              for (int idx = startIDX; idx < currentEndIDX; idx++)
-//              {
-//                // Start 3 bytes after the start to account for the message information
-//                rtcmMessage[index] = rtcmBytes[idx];
-//                index++;
-//              }
-//  
-//              // Update start index for next pass
-//              startIDX += index - 3;
-//  
-//              Serial.printf("Partial message %d/%d:\n", packetNumber + 1, numPackets);
-//              for (int i = 0; i < sizeof(rtcmMessage); i++)
-//              {
-//                Serial.print(rtcmMessage[i], HEX);
-//                Serial.print(" ");
-//              }
-//              Serial.println();
-//  
-//              // Send message
-//              for (int i = 0; i < 2; i++)
-//              {
-//                sendLora(rtcmMessage, index);
-//              }
-//            }
-//          }
-//        }
-//      }
-//
-//      //------------------------------------------------------------------------------
-//      // Otherwise, the message is short enough to send in one packet
-//      else
-//      {
-//        // Declare a fresh byte array of a size we can send, reset the number of bytes
-//        byte rtcmMessage[MAX_RTCM];
-//        int index = 0;
-//
-//        // Check to see if there is another message after this one
-//        if (rtcmIDXs[i + 1] > 0)
-//        {
-//          // Start at given index, end just before next index
-//          for (int idx = rtcmIDXs[i]; idx < rtcmIDXs[i + 1]; idx++)
-//          {
-//            rtcmMessage[index] = rtcmBytes[idx];
-//            index++;
-//          }
-//        }
-//
-//        // Otherwise, this is the last message
-//        else
-//        {
-//          // Start at given index, end after the message length
-//          for (int idx = rtcmIDXs[i]; idx < rtcmLength; idx++)
-//          {
-//            rtcmMessage[index] = rtcmBytes[idx];
-//            index++;
-//          }
-//        }
-//
-//        // Sends the current message
-//        sendLora(rtcmMessage, index);
-//      }
-//      //------------------------------------------------------------------------------
-//
-//    }
-//
-//    //    sendLora(rtcmBytes, rtcmLength);
-//
-//    // Clear rtcmBytes for next time
-//    for (int i = 0; i < rtcmLength + 1; i++)
-//    {
-//      rtcmBytes[i] = 0;
-//    }
-//
-//    digitalWrite(LED, LOW);
-//  }
-//}
 
 void taskRTCM()
 {
@@ -478,6 +312,23 @@ void taskUser()
           }
           break;
 
+        case 'L':
+          // L: Toggle LoRa printing on/off
+          if (LoraBytes)
+          {
+            // Turn stream off
+            Serial.println("LoRa printing disabled");
+            LoraBytes = false;
+          }
+
+          else
+          {
+            // Turn stream on
+            Serial.println("LoRa printing enabled");
+            LoraBytes = true;
+          }
+          break;
+
         case 'c':
           // c: Clear all data
           Serial.println();
@@ -510,6 +361,7 @@ void printHelp()
   Serial.println("|| h: Print this help message    ||");
   Serial.println("|| r: Toggle RTCM stream on/off  ||");
   Serial.println("|| l: Enable/Disable RTCM output ||");
+  Serial.println("|| L: Enable/Disable LoRa print  ||");
   Serial.println("|| c: Clear all serial data      ||");
   Serial.println("||-------------------------------||");
   Serial.println();
@@ -529,13 +381,16 @@ void sendLora(byte myByte[], int arraySize)
   LoRa.endPacket();
 
   // Print Bytes
-  Serial.println("Sending Bytes:");
-  for (int i = 0; i < arraySize; i++)
+  if (LoraBytes)
   {
-    Serial.print(myByte[i], HEX);
-    Serial.print(" ");
+    Serial.println("\nSending Bytes:");
+    for (int i = 0; i < arraySize; i++)
+    {
+      Serial.print(myByte[i], HEX);
+      Serial.print(" ");
+    }
+    Serial.printf("\nMessage Length: %d bytes.\n\n", arraySize);
   }
-  Serial.printf("\nMessage Length: %d bytes.\n\n", arraySize);
 }
 
 void clearPort()

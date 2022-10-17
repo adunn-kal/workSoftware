@@ -126,6 +126,7 @@ void setup()
  }
 
   LoRa.setSyncWord(0xF3);
+  LoRa.setSpreadingFactor(12); // ranges from 6-12,default 7 (Higher is slower but better)
   Serial.println("Starting!\n");
   Serial1.flush();
   Serial2.flush();
