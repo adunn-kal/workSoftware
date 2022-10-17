@@ -12,7 +12,8 @@
 #define USER_INTERVAL 500 // ms between user interaction
 #define MAX_RTCM 70
 #define ARRAY_SIZE 1000
-#define TRY_SEND 3 // How many times to send partial rtcm messages
+#define TRY_SEND 2 // How many times to send partial rtcm messages
+#define SPREAD_FACTOR 8 // 6-12 (default 7)
 
 // Define Pins and Constants
 #define LED 2
@@ -67,7 +68,8 @@ void setup()
   }
 
   LoRa.setSyncWord(0xF3);
-  LoRa.setSpreadingFactor(12); // ranges from 6-12,default 7 (Higher is slower but better)
+  LoRa.setSpreadingFactor(SPREAD_FACTOR); // ranges from 6-12,default 7 (Higher is slower but better)
+  LoRa.setTxPower(20, true); // ranges from 14-20, higher takes more power but is better
   Serial.println("Starting!\n");
   Serial1.flush();
   Serial2.flush();
@@ -199,15 +201,10 @@ void taskLORA()
 //          Serial.println();
 
           // Send message
-          if (packetNumber == 0)
+          for (int i = 0; i < TRY_SEND; i++)
           {
-            for (int i = 0; i < TRY_SEND; i++)
-            {
-              sendLora(rtcmMessage, index);
-            }
+            sendLora(rtcmMessage, index);
           }
-
-          else sendLora(rtcmMessage, index);
         }
       }
     }

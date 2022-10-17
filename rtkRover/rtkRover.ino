@@ -10,7 +10,7 @@
 #include <Wire.h>
 #include <SD.h>
 
-#define RTCM_INTERVAL 1 // ms between RTCM updates
+#define RTCM_INTERVAL 10 // ms between RTCM updates
 #define NMEA_INTERVAL 2500 // ms between NMEA updates
 #define USER_INTERVAL 500 // ms between user interaction
 #define DATA_INTERVAL 5000 // ms between user interaction
@@ -24,6 +24,7 @@
 #define ARRAY_SIZE 1000
 //#define FILE_SIZE 121 // # of lines per text file (one extra)
 #define FILE_SIZE 13 // # of lines per text file (one extra)
+#define SPREAD_FACTOR 8 // 6-12 (default 7)
 
 // Define the pins used by the transceiver module
 #define ss 5
@@ -126,7 +127,8 @@ void setup()
  }
 
   LoRa.setSyncWord(0xF3);
-  LoRa.setSpreadingFactor(12); // ranges from 6-12,default 7 (Higher is slower but better)
+  LoRa.setSpreadingFactor(SPREAD_FACTOR); // ranges from 6-12,default 7 (Higher is slower but better)
+  LoRa.setTxPower(20, true); // ranges from 14-20, higher takes more power but is better
   Serial.println("Starting!\n");
   Serial1.flush();
   Serial2.flush();
@@ -1000,15 +1002,20 @@ void processBytes(String myString)
   // Append messages to fullMessage
   //--------------------------------------------------
   // If the message is part of a larger message
-  if (myBytes[0] == 0xa0)
+  if ((myBytes[0] == 0xa0) and (sizeof(myBytes)>3))
   {
-    // Update packet information
+    bool resetFlag = false;
+  
+    // If we got the next packet correctly, update packet information
     if (myBytes[1] == packetNumber+1)
     {
       packetNumber = myBytes[1];
       numPackets = myBytes[2];
+
+//      Serial.printf("Processing message %d of %d\n", packetNumber, numPackets);
     }
 
+    // Otherwise, we did not get the packet we expected
     else
     {
       // If it's the same message as before, just ignore it
@@ -1017,6 +1024,7 @@ void processBytes(String myString)
         // Do nothing
       }
 
+      // Otherwise, reset everything
       else
       {
         Serial.println("Got screwed up in processBytes()");
@@ -1027,26 +1035,32 @@ void processBytes(String myString)
         packetNumber = 0;
         numPackets = 0;
         packetIndex = 0;
+
+        resetFlag = true;
       }
     }
 
-    // Input packet data into fullMessage
-    for (int j = 3; j < sizeof(myBytes); j++)
+    // If we have a valid partial message
+    if (!resetFlag)
     {
-      fullMessage[packetIndex] = myBytes[j];
-      packetIndex++;
+      // Input packet data into fullMessage
+      for (int j = 3; j < sizeof(myBytes); j++)
+      {
+        fullMessage[packetIndex] = myBytes[j];
+        packetIndex++;
+      }
     }
 
-//    if (rtcmStream)
-//    {
-//      Serial.printf("Partial message %d/%d:\n", packetNumber, numPackets);
-//      for (int j = 0; j < packetIndex; j++)
-//      {
-//        Serial.print(fullMessage[j], HEX);
-//        Serial.print(" ");
-//      }
-//      Serial.println();
-//    }
+    // If we screwed up the message somehow
+    else
+    {
+      Serial.println("Resetting full message\n");
+      
+      for (int i = 0; i < ARRAY_SIZE; i++)
+      {
+        fullMessage[i] = 0;
+      }
+    }
 
     // Only write data when the entire message has been created
     if (packetNumber == numPackets)
@@ -1075,6 +1089,7 @@ void processBytes(String myString)
   }
   //--------------------------------------------------
 
+  // It's a full normal message
   else
   {
     if (rtcmStream)
