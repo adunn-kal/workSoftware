@@ -1,4 +1,5 @@
 #include <esp_now.h>
+#include <esp_wifi.h>
 #include <WiFi.h>
 
 //Structure example to receive data
@@ -34,6 +35,9 @@ void setup()
   
   //Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
+
+  Serial.print("ESP32 Board MAC Address:  ");
+  Serial.println(WiFi.macAddress());
 
   //Init ESP-NOW
   if (esp_now_init() != ESP_OK)
