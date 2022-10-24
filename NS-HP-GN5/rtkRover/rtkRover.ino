@@ -24,7 +24,7 @@
 #define ARRAY_SIZE 1000
 //#define FILE_SIZE 121 // # of lines per text file (one extra)
 #define FILE_SIZE 13 // # of lines per text file (one extra)
-#define SPREAD_FACTOR 8 // 6-12 (default 7)
+#define SPREAD_FACTOR 7 // 6-12 (default 7)
 
 // Define the pins used by the transceiver module
 #define ss 5

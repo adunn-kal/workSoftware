@@ -13,7 +13,7 @@
 #define MAX_RTCM 70
 #define ARRAY_SIZE 1000
 #define TRY_SEND 2 // How many times to send partial rtcm messages
-#define SPREAD_FACTOR 8 // 6-12 (default 7)
+#define SPREAD_FACTOR 7 // 6-12 (default 7)
 
 // Define Pins and Constants
 #define LED 2
