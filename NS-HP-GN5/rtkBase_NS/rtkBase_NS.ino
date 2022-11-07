@@ -7,9 +7,14 @@
 #include <Wire.h>
 #include <SD.h>
 
+//-------------------------------------------------------------------------
+//----- Declare Constants -------------------------------------------------
+
 #define RTCM_INTERVAL 50 // ms between RTCM updates
 #define LORA_INTERVAL 50 // ms between NMEA updates
 #define USER_INTERVAL 500 // ms between user interaction
+#define SD_INTERVAL 60*1000
+
 #define MAX_RTCM 70
 #define ARRAY_SIZE 1000
 #define TRY_SEND 2 // How many times to send partial rtcm messages
@@ -28,9 +33,26 @@
 #define RX2 16
 #define TX2 17
 
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
+//----- Declare Variables -------------------------------------------------
+
 long rtcmTimer;
 long loraTimer;
 long userTimer;
+long sdTimer;
+
+uint32_t fileCounter = 0;
 
 byte rtcmBytes[ARRAY_SIZE];
 int rtcmLength;
@@ -41,6 +63,20 @@ int rtcmIDXs[ARRAY_SIZE];
 bool rtcmStream = false;
 bool loraStream = true;
 bool LoraBytes = false;
+
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
+//----- Main Program ------------------------------------------------------
 
 void setup()
 {
@@ -92,10 +128,24 @@ void loop()
 
   // Run user task
   taskUser();
+
+  // Run SD task
+//  taskSD();
 }
 
-//------------------------------------------------------------
-// Tasks
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
+//----- Tasks -------------------------------------------------------------
 
 // Task to send RTCM bytes
 void taskLORA()
@@ -257,6 +307,49 @@ void taskRTCM()
   }
 }
 
+void taskSD()
+{
+  if ((millis() - sdTimer) > SD_INTERVAL)
+  {
+    // Reset timer
+    sdTimer = millis();
+
+    // Check to see if the folder exists
+    sdBegin();
+    
+    // Create string for new file name
+    String fileName = "/Data/text_";
+    fileName += String(fileCounter);
+    fileName += ".txt";
+    fileCounter++;
+
+    // Get base position
+  
+//    //Create and open a file
+//    File dataFile = SD.open(fileName, FILE_WRITE);
+//    
+//    // Create strings for measurement, time, and temp
+//    String currentLat = latArray[i];
+//    String currentLong = longArray[i];
+//    String currentAlt = String(altArray[i]);
+//  
+//    // Write position to one line of a file
+//    dataFile.println("Latitude, Longitude, Ellipsoidal Height [m]");
+//    dataFile.print(currentLat);
+//    dataFile.print(",");
+//    dataFile.print(currentLong);
+//    dataFile.print(",");
+//    dataFile.println(currentAlt);
+//  
+//    // Close file
+//    dataFile.close();
+  
+    Serial.println();
+    Serial.println("Writing to SD done.");
+    Serial.println();
+  }
+}
+
 void taskUser()
 {
   if ((millis() - userTimer) > USER_INTERVAL)
@@ -339,6 +432,14 @@ void taskUser()
           clearPort();
           break;
 
+        case 'B':
+          // B: Query Base Position
+          Serial.println();
+          Serial.println("Querying Base Position");
+          Serial.println();
+          queryBasePosition();
+          break;
+
         //----------------------------------
 
         default:
@@ -353,8 +454,19 @@ void taskUser()
   }
 }
 
-//-----------------------------------------------------------------------
-// Functions
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
+//----- Functions ---------------------------------------------------------
 
 void printHelp()
 {
@@ -365,8 +477,31 @@ void printHelp()
   Serial.println("|| l: Enable/Disable RTCM output ||");
   Serial.println("|| L: Enable/Disable LoRa print  ||");
   Serial.println("|| c: Clear all serial data      ||");
+  Serial.println("|| B: Query base position        ||");
   Serial.println("||-------------------------------||");
   Serial.println();
+}
+
+void sdBegin()
+{
+  // Check if file exists and create one if not
+  if (!SD.exists("/README.txt"))
+  {
+    Serial.println("Creating lead file");
+
+    File dataFile = SD.open("/README.txt", FILE_WRITE);
+
+    // Create header with title, timestamp, and column names
+    dataFile.println("RTK Base");
+    dataFile.println("Base Position");
+    dataFile.close();
+  }
+
+  // Create data folder if not there
+  if (!SD.exists("/Data"))
+  {
+    SD.mkdir("/Data");
+  }
 }
 
 void sendLora(byte myByte[], int arraySize)
@@ -428,3 +563,92 @@ void parseBytes(byte myByte[], int arraySize)
 
   }
 }
+
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
+//----- GPS Commands ------------------------------------------------------
+
+bool printBuffer(byte byteBuffer[], int buffSize)
+{
+  if (byteBuffer[4] == 0x83)
+  {
+    Serial.println();
+    Serial.println("ACK message received:");
+    for (int idx = 0; idx < 9; idx++)
+    {
+      Serial.print(byteBuffer[idx], HEX);
+      Serial.print(" ");
+    }
+    Serial.println("\n");
+      
+    for (int idx = 9; idx < buffSize; idx++)
+    {
+      Serial.print(byteBuffer[idx], HEX);
+      Serial.print(" ");
+    }
+    Serial.println("\n");
+    
+    return true;
+  }
+  
+  else
+  {
+    if (byteBuffer[4] == 0x84)
+    {
+      Serial.println();
+      Serial.println("NACK message received:");
+      for (int idx = 0; idx < buffSize; idx++)
+      {
+        Serial.print(byteBuffer[idx], HEX);
+        Serial.print(" ");
+      }
+      Serial.println("\n");
+    }
+
+    else
+    {
+      Serial.println();
+      Serial.println("Unable to interpret response:");
+      Serial.println();
+    }
+
+    return false;
+  }
+}
+
+void queryBasePosition()
+{
+  byte message[] = {0xA0, 0xA1, 0x00, 0x01, 0x23, 0x23, 0x0D, 0x0A};
+  Serial2.write(message, sizeof(message));
+  Serial2.flush();
+
+  
+  delay(50);
+
+  // Read all data from serial2 channel
+  Serial2.flush();
+  Serial.println();
+  Serial.println("Queried Base Position:");
+  byte byteBuffer[Serial2.available()];
+  int i = 0;
+  while (Serial2.available())
+  {
+    byte myChar = Serial2.read();
+    byteBuffer[i] = myChar;
+    i++;
+  }
+
+  printBuffer(byteBuffer, sizeof(byteBuffer));
+}
+
+//-------------------------------------------------------------------------
