@@ -8,21 +8,39 @@
 #include <SD.h>
 
 //-------------------------------------------------------------------------
+//----- Configuration -----------------------------------------------------
+
+// Comment out this line to deactivate SD card storage
+#define SD_ACTIVE
+
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
 //----- Declare Constants -------------------------------------------------
 
 #define RTCM_INTERVAL 50 // ms between RTCM updates
 #define LORA_INTERVAL 50 // ms between NMEA updates
 #define USER_INTERVAL 500 // ms between user interaction
-#define SD_INTERVAL 60*1000
+#define SD_INTERVAL 10*1000 // ms between SD card writing
 
 #define MAX_RTCM 70
 #define ARRAY_SIZE 1000
 #define TRY_SEND 2 // How many times to send partial rtcm messages
-#define SPREAD_FACTOR 8 // 6-12 (default 7)
+#define SPREAD_FACTOR 7 // 6-12 (default 7)
 
 // Define Pins and Constants
 #define LED 2
 #define TRIG 13
+#define ChS 15
 
 // Define the pins used by the transceiver module
 #define ss 5
@@ -53,6 +71,16 @@ long userTimer;
 long sdTimer;
 
 uint32_t fileCounter = 0;
+uint8_t savedBaseMode = 0;
+uint32_t savedSurveyLength = 0;
+uint32_t standardDeviation = 0;
+double savedLat = 0.0;
+double savedLong = 0.0;
+float savedAlt = 0.0;
+uint8_t baseMode = 0;
+uint32_t surveyLength = 0;
+
+
 
 byte rtcmBytes[ARRAY_SIZE];
 int rtcmLength;
@@ -63,6 +91,7 @@ int rtcmIDXs[ARRAY_SIZE];
 bool rtcmStream = false;
 bool loraStream = true;
 bool LoraBytes = false;
+bool queryBytes = false;
 
 //-------------------------------------------------------------------------
 
@@ -90,6 +119,11 @@ void setup()
   pinMode(LED, OUTPUT);
   pinMode(TRIG, OUTPUT);
   pinMode(TRIG, LOW);
+  pinMode(ChS, OUTPUT);
+
+  #ifdef SD_ACTIVE
+    SD.begin(ChS);
+  #endif
 
   // Setup LoRa transceiver module
   LoRa.setPins(ss, rst, dio0);
@@ -130,7 +164,9 @@ void loop()
   taskUser();
 
   // Run SD task
-//  taskSD();
+  #ifdef SD_ACTIVE
+    taskSD();
+  #endif
 }
 
 //-------------------------------------------------------------------------
@@ -159,15 +195,18 @@ void taskLORA()
     parseBytes(rtcmBytes, rtcmLength);
     if (numRTCM > 2) digitalWrite(LED , HIGH);
 
-    Serial.println("\nFull Message:");
-    for (int i = 0; i < rtcmLength; i++)
+    if (LoraBytes)
     {
-      Serial.print(rtcmBytes[i], HEX);
-      Serial.print(" ");
+      Serial.println("\nFull Message:");
+      for (int i = 0; i < rtcmLength; i++)
+      {
+        Serial.print(rtcmBytes[i], HEX);
+        Serial.print(" ");
+      }
+      Serial.println();
+      Serial.printf("Message length: %d bytes\n\n", rtcmLength);
     }
-    Serial.println();
-    Serial.printf("Message length: %d bytes\n\n", rtcmLength);
-
+    
 
     // Send each message individually over LoRa
     for (int i = 0; i < numRTCM; i++)
@@ -179,12 +218,12 @@ void taskLORA()
 
       int currentIndex = rtcmIDXs[i]; // Current place within rtcmBytes
 
-      Serial.printf("Current message length: %d\nCurrent index: %d\n\n", currentLength, currentIndex);
+      if (LoraBytes) Serial.printf("Current message length: %d\nCurrent index: %d\n\n", currentLength, currentIndex);
       
       // If the current message is small enough to send in one packet, send it
       if (currentLength <= MAX_RTCM)
       {
-        Serial.println("Writing message normally");
+        if (LoraBytes) Serial.println("Writing message normally");
         
         // Declare a fresh byte array of a size we can send, reset the number of bytes
         byte rtcmMessage[MAX_RTCM];
@@ -208,7 +247,7 @@ void taskLORA()
         int numPackets = currentLength / MAX_RTCM;
         if (currentLength % MAX_RTCM > 0) numPackets++;
 
-        Serial.printf("Writing message in %d parts\n", numPackets);
+        if (LoraBytes) Serial.printf("Writing message in %d parts\n", numPackets);
 
         // Split the message into as many packets as needed and send them
         for (int packetNumber = 0; packetNumber < numPackets; packetNumber++)
@@ -219,8 +258,11 @@ void taskLORA()
           // Calculate starting and ending indeces
           int endIndex = min(currentIndex+MAX_RTCM, currentIndex+remainingLength);
           
-          Serial.printf("Packet number %d/%d\n", packetNumber+1, numPackets);
-          Serial.printf("Bytes %d to %d\n", currentIndex, endIndex);
+          if (LoraBytes) 
+          {
+            Serial.printf("Packet number %d/%d\n", packetNumber+1, numPackets);
+            Serial.printf("Bytes %d to %d\n", currentIndex, endIndex);
+          }
           
           // Declare a fresh byte array of a size we can send, reset the number of bytes
           byte rtcmMessage[MAX_RTCM + 3];
@@ -242,13 +284,16 @@ void taskLORA()
           // Update start index for next pass
           currentIndex += index - 3;
 
-          Serial.printf("Partial message %d/%d:\n", packetNumber + 1, numPackets);
-//          for (int i = 0; i < index; i++)
-//          {
-//            Serial.print(rtcmMessage[i], HEX);
-//            Serial.print(" ");
-//          }
-//          Serial.println();
+          if (LoraBytes)
+          {
+            Serial.printf("Partial message %d/%d:\n", packetNumber + 1, numPackets);
+//            for (int i = 0; i < index; i++)
+//            {
+//              Serial.print(rtcmMessage[i], HEX);
+//              Serial.print(" ");
+//            }
+//            Serial.println();
+          }
 
           // Send message
           if (!packetNumber)
@@ -316,6 +361,9 @@ void taskSD()
 
     // Check to see if the folder exists
     sdBegin();
+
+    // Query base position
+    queryBasePosition();
     
     // Create string for new file name
     String fileName = "/Data/text_";
@@ -323,30 +371,33 @@ void taskSD()
     fileName += ".txt";
     fileCounter++;
 
-    // Get base position
+    //Create and open a file
+    File dataFile = SD.open(fileName, FILE_WRITE);
   
-//    //Create and open a file
-//    File dataFile = SD.open(fileName, FILE_WRITE);
-//    
-//    // Create strings for measurement, time, and temp
-//    String currentLat = latArray[i];
-//    String currentLong = longArray[i];
-//    String currentAlt = String(altArray[i]);
-//  
-//    // Write position to one line of a file
-//    dataFile.println("Latitude, Longitude, Ellipsoidal Height [m]");
-//    dataFile.print(currentLat);
-//    dataFile.print(",");
-//    dataFile.print(currentLong);
-//    dataFile.print(",");
-//    dataFile.println(currentAlt);
-//  
-//    // Close file
-//    dataFile.close();
+    // Write position to one line of a file
+    dataFile.println("Saved Base Mode, Saved Survey Length, Standard Deviation, Saved Latitude, Saved Longitude, Saved Ellipsoidal Height, Current Base Mode, Current Survey Length");
+    dataFile.print(String(savedBaseMode));
+    dataFile.print(",");
+    dataFile.print(String(savedSurveyLength));
+    dataFile.print(",");
+    dataFile.print(String(standardDeviation));
+    dataFile.print(",");
+    dataFile.print(String(savedLat, 7));
+    dataFile.print(",");
+    dataFile.print(String(savedLong, 7));
+    dataFile.print(",");
+    dataFile.print(String(savedAlt, 7));
+    dataFile.print(",");
+    dataFile.print(String(baseMode));
+    dataFile.print(",");
+    dataFile.print(String(surveyLength));
   
-    Serial.println();
-    Serial.println("Writing to SD done.");
-    Serial.println();
+    // Close file
+    dataFile.close();
+  
+//    Serial.println();
+//    Serial.println("Writing to SD done.");
+//    Serial.println();
   }
 }
 
@@ -437,7 +488,9 @@ void taskUser()
           Serial.println();
           Serial.println("Querying Base Position");
           Serial.println();
+          queryBytes = true;
           queryBasePosition();
+          queryBytes = false;
           break;
 
         //----------------------------------
@@ -492,8 +545,24 @@ void sdBegin()
     File dataFile = SD.open("/README.txt", FILE_WRITE);
 
     // Create header with title, timestamp, and column names
+    queryBasePosition();
+    
     dataFile.println("RTK Base");
-    dataFile.println("Base Position");
+    dataFile.print("Spreading Factor: ");
+    dataFile.println(String(SPREAD_FACTOR));
+    dataFile.print("Base Mode: ");
+    dataFile.println(String(savedBaseMode));
+
+    if (savedBaseMode == 2)
+    {
+      dataFile.print("  Saved Latitude: ");
+      dataFile.println(String(savedLat, 7));
+      dataFile.print("  Saved Longitude: ");
+      dataFile.println(String(savedLong, 7));
+      dataFile.print("  Saved Ellipsoidal Height [m]: ");
+      dataFile.println(String(savedAlt, 7));
+    }
+    
     dataFile.close();
   }
 
@@ -578,54 +647,6 @@ void parseBytes(byte myByte[], int arraySize)
 //-------------------------------------------------------------------------
 //----- GPS Commands ------------------------------------------------------
 
-bool printBuffer(byte byteBuffer[], int buffSize)
-{
-  if (byteBuffer[4] == 0x83)
-  {
-    Serial.println();
-    Serial.println("ACK message received:");
-    for (int idx = 0; idx < 9; idx++)
-    {
-      Serial.print(byteBuffer[idx], HEX);
-      Serial.print(" ");
-    }
-    Serial.println("\n");
-      
-    for (int idx = 9; idx < buffSize; idx++)
-    {
-      Serial.print(byteBuffer[idx], HEX);
-      Serial.print(" ");
-    }
-    Serial.println("\n");
-    
-    return true;
-  }
-  
-  else
-  {
-    if (byteBuffer[4] == 0x84)
-    {
-      Serial.println();
-      Serial.println("NACK message received:");
-      for (int idx = 0; idx < buffSize; idx++)
-      {
-        Serial.print(byteBuffer[idx], HEX);
-        Serial.print(" ");
-      }
-      Serial.println("\n");
-    }
-
-    else
-    {
-      Serial.println();
-      Serial.println("Unable to interpret response:");
-      Serial.println();
-    }
-
-    return false;
-  }
-}
-
 void queryBasePosition()
 {
   byte message[] = {0xA0, 0xA1, 0x00, 0x01, 0x23, 0x23, 0x0D, 0x0A};
@@ -637,8 +658,6 @@ void queryBasePosition()
 
   // Read all data from serial2 channel
   Serial2.flush();
-  Serial.println();
-  Serial.println("Queried Base Position:");
   byte byteBuffer[Serial2.available()];
   int i = 0;
   while (Serial2.available())
@@ -648,7 +667,95 @@ void queryBasePosition()
     i++;
   }
 
-  printBuffer(byteBuffer, sizeof(byteBuffer));
+  // Message was recieved succesfully
+  if (byteBuffer[4] == 0x83)
+  {
+    if (queryBytes)
+    {
+      Serial.println("Queried Base Position:");
+      for (int idx = 0; idx < 9; idx++)
+      {
+        Serial.print(byteBuffer[idx], HEX);
+        Serial.print(" ");
+      }
+      Serial.println("\n");
+        
+      for (int idx = 9; idx < sizeof(byteBuffer); idx++)
+      {
+        Serial.print(byteBuffer[idx], HEX);
+        Serial.print(" ");
+      }
+      Serial.println("\n");
+    }
+
+    //-------------------------------------------------------------
+    
+    // Update saved survey length (3-6)
+    byte savedSurveyBytes[4];
+    for (uint8_t idx = 0; idx < 4; idx++)
+    {
+      savedSurveyBytes[3-idx] = byteBuffer[idx+3 + 3+9];
+    }
+
+    // Update standard deviation (7-10)
+    byte standardDeviationBytes[4];
+    for (uint8_t idx = 0; idx < 4; idx++)
+    {
+      standardDeviationBytes[3-idx] = byteBuffer[idx+7 + 3+9];
+    }
+
+    // Update latitude and longitude (11-18 | 19-26)
+    byte savedLatBytes[8];
+    byte savedLongBytes[8];
+    for (uint8_t idx = 0; idx < 8; idx++)
+    {
+      savedLatBytes[7-idx] = byteBuffer[idx+11 + 3+9];
+      savedLongBytes[7-idx] = byteBuffer[idx+19 + 3+9];
+    }
+
+    // Update altitude (27-30)
+    byte savedAltBytes[4];
+    for (uint8_t idx = 0; idx < 4; idx++)
+    {
+      savedAltBytes[3-idx] = byteBuffer[idx+27 + 3+9];
+    }
+
+    // Update current survey length (32-35)
+    byte surveyBytes[4];
+    for (uint8_t idx = 0; idx < 4; idx++)
+    {
+      surveyBytes[3-idx] = byteBuffer[idx+32 + 3+9];
+    }
+
+
+    savedBaseMode = byteBuffer[2 + 3+9];
+    memcpy(&savedSurveyLength, savedSurveyBytes, 4);
+    memcpy(&savedLat, savedLatBytes, 8);
+    memcpy(&savedLong, savedLongBytes, 8);
+    memcpy(&savedAlt, savedAltBytes, 4);
+    baseMode = byteBuffer[31 + 3+9];
+    memcpy(&surveyLength, surveyBytes, 4);
+    
+
+    if (queryBytes)
+    {
+      Serial.printf("Saved Base Mode: %d\n", savedBaseMode);
+      Serial.printf("Saved Survey Length: %d\n", savedSurveyLength);
+      Serial.printf("Standard Deviation: %d\n", standardDeviation);
+      Serial.printf("Saved Latitude: %f\n", savedLat);
+      Serial.printf("Survey Longitude: %f\n", savedLong);
+      Serial.printf("Survey Altitude: %f\n", savedAlt);
+      Serial.printf("Current Base Mode: %d\n", baseMode);
+      Serial.printf("Current Survey Length: %d\n", surveyLength);
+    }
+    
+    //-------------------------------------------------------------
+  }
+  
+  else
+  {
+    if (queryBytes) Serial.println("Unable to interpret command");
+  }
 }
 
 //-------------------------------------------------------------------------

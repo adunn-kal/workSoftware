@@ -10,6 +10,9 @@
 #include <Wire.h>
 #include <SD.h>
 
+//-------------------------------------------------------------------------
+//----- Declare Constants -------------------------------------------------
+
 #define RTCM_INTERVAL 10 // ms between RTCM updates
 #define NMEA_INTERVAL 2500 // ms between NMEA updates
 #define USER_INTERVAL 500 // ms between user interaction
@@ -38,6 +41,20 @@
 // Talk to GPS module, get NMEA
 #define RX2 16
 #define TX2 17
+
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
+//----- Declare Variables -------------------------------------------------
 
 long rtcmTimer;
 long nmeaTimer;
@@ -100,13 +117,27 @@ float posAcc;
 float altAcc;
 bool accFix = false;
 
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
+//----- Main Program ------------------------------------------------------
+
 void setup()
 {
   // Start computer-ESP serial
   Serial.begin(115200);
 
- // Start RTCM serial
- Serial1.begin(115200, SERIAL_8N1, RX1, TX1);
+  // Start RTCM serial
+  Serial1.begin(115200, SERIAL_8N1, RX1, TX1);
 
   // Start ESP-GPS serial
   Serial2.begin(115200, SERIAL_8N1, RX2, TX2);
@@ -166,8 +197,19 @@ void loop()
   taskData();
 }
 
-//------------------------------------------------------------
-// Tasks
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
+//----- Tasks -------------------------------------------------------------
 
 void taskData()
 {
@@ -632,8 +674,19 @@ void taskAccuracy()
   }
 }
 
-//-----------------------------------------------------------------------
-// Functions
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
+//----- Functions ---------------------------------------------------------
 
 void printHelp()
 {
@@ -673,6 +726,8 @@ void sdBegin()
 
     //Create header with title, timestamp, and column names
     dataFile.println("RTK Rover");
+    dataFile.print("Spreading Factor: ");
+    dataFile.println(String(SPREAD_FACTOR));
     dataFile.println("UTC Time, Fix Type, SIV, Latitude, Longitude, Altitude");
     dataFile.close();
   }
@@ -875,54 +930,6 @@ void getTime()
   }
   Serial.println(String(charBuffer));
   Serial.println("\n");
-}
-
-bool printBuffer(byte byteBuffer[], int buffSize)
-{
-  if (byteBuffer[4] == 0x83)
-  {
-    Serial.println();
-    Serial.println("ACK message received:");
-    for (int idx = 0; idx < 9; idx++)
-    {
-      Serial.print(byteBuffer[idx], HEX);
-      Serial.print(" ");
-    }
-    Serial.println("\n");
-      
-    for (int idx = 9; idx < buffSize; idx++)
-    {
-      Serial.print(byteBuffer[idx], HEX);
-      Serial.print(" ");
-    }
-    Serial.println("\n");
-    
-    return true;
-  }
-  
-  else
-  {
-    if (byteBuffer[4] == 0x84)
-    {
-      Serial.println();
-      Serial.println("NACK message received:");
-      for (int idx = 0; idx < buffSize; idx++)
-      {
-        Serial.print(byteBuffer[idx], HEX);
-        Serial.print(" ");
-      }
-      Serial.println("\n");
-    }
-
-    else
-    {
-      Serial.println();
-      Serial.println("Unable to interpret response:");
-      Serial.println();
-    }
-
-    return false;
-  }
 }
 
 void processBytes(String myString)
@@ -1131,8 +1138,67 @@ void processBytes(String myString)
   
 }
 
-//-----------------------------------------------------------------------
-// GPS Commands
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
+//----- GPS Commands ------------------------------------------------------
+
+bool printBuffer(byte byteBuffer[], int buffSize)
+{
+  if (byteBuffer[4] == 0x83)
+  {
+    Serial.println();
+    Serial.println("ACK message received:");
+    for (int idx = 0; idx < 9; idx++)
+    {
+      Serial.print(byteBuffer[idx], HEX);
+      Serial.print(" ");
+    }
+    Serial.println("\n");
+      
+    for (int idx = 9; idx < buffSize; idx++)
+    {
+      Serial.print(byteBuffer[idx], HEX);
+      Serial.print(" ");
+    }
+    Serial.println("\n");
+    
+    return true;
+  }
+  
+  else
+  {
+    if (byteBuffer[4] == 0x84)
+    {
+      Serial.println();
+      Serial.println("NACK message received:");
+      for (int idx = 0; idx < buffSize; idx++)
+      {
+        Serial.print(byteBuffer[idx], HEX);
+        Serial.print(" ");
+      }
+      Serial.println("\n");
+    }
+
+    else
+    {
+      Serial.println();
+      Serial.println("Unable to interpret response:");
+      Serial.println();
+    }
+
+    return false;
+  }
+}
 
 void dataFormat(byte format)
 {
