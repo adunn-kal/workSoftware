@@ -30,7 +30,7 @@
 #define RTCM_INTERVAL 50 // ms between RTCM updates
 #define LORA_INTERVAL 50 // ms between NMEA updates
 #define USER_INTERVAL 500 // ms between user interaction
-#define SD_INTERVAL 10*1000 // ms between SD card writing
+#define SD_INTERVAL 60*1000 // ms between SD card writing
 
 #define MAX_RTCM 70
 #define ARRAY_SIZE 1000
