@@ -104,6 +104,7 @@ bool nmeaStream = false;
 bool rtcmStream = true;
 bool loraOn = true;
 bool dataStream = true;
+bool receiving = false;
 
 float lats[NUM];
 float longs[NUM];
@@ -259,6 +260,9 @@ void taskRTCM()
     int packetSize = LoRa.parsePacket();
     if (packetSize and loraOn)
     {
+      // Set recieving flag to true
+      receiving = true;
+      
       // Read packet
       String loraData;
       while (LoRa.available())
@@ -277,7 +281,7 @@ void taskNMEA()
   // Display NMEA readings at set RTCM_INTERVAL
   if ((millis() - nmeaTimer) > NMEA_INTERVAL)
   { 
-    if (fixType) digitalWrite(LED, HIGH);
+    if (fixType && receiving) digitalWrite(LED, HIGH);
     
     // Reset timer
     nmeaTimer = millis();
