@@ -1,6 +1,7 @@
 // RTK Base using NS-HP-GN5
 // 09/16/22
-// https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/
+// GPS: https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/
+// LORA: https://github.com/sandeepmistry/arduino-LoRa/blob/master/API.md
 
 #include <SPI.h>
 #include <LoRa.h>
@@ -11,7 +12,8 @@
 //----- Configuration -----------------------------------------------------
 
 // Comment out this line to deactivate SD card storage
-#define SD_ACTIVE
+//#define SD_ACTIVE
+#define TASK_TIMER
 
 //-------------------------------------------------------------------------
 
@@ -29,13 +31,13 @@
 
 #define RTCM_INTERVAL 50 // ms between RTCM updates
 #define LORA_INTERVAL 50 // ms between NMEA updates
-#define USER_INTERVAL 500 // ms between user interaction
+#define USER_INTERVAL 250 // ms between user interaction
 #define SD_INTERVAL 60*1000 // ms between SD card writing
 
-#define MAX_RTCM 70
+#define MAX_RTCM 255
 #define ARRAY_SIZE 1000
 #define TRY_SEND 2 // How many times to send partial rtcm messages
-#define SPREAD_FACTOR 7 // 6-12 (default 7)
+#define SPREAD_FACTOR 8 // 6-12 (default 7)
 
 // Define Pins and Constants
 #define LED 2
@@ -188,6 +190,7 @@ void taskLORA()
 {
   if (((millis() - loraTimer) > LORA_INTERVAL) and loraStream and rtcmLength)
   {
+    Serial.printf("\nRTCM Bytes to send: %d\n\n", rtcmLength);
     // Reset timer
     loraTimer = millis();
 
@@ -295,7 +298,7 @@ void taskLORA()
 //            Serial.println();
           }
 
-          // Send message
+          // Send message (send first packet multiple times)
           if (!packetNumber)
           {
             for (int i = 0; i < TRY_SEND; i++)
@@ -317,6 +320,10 @@ void taskLORA()
     }
 
     digitalWrite(LED, LOW);
+
+    #ifdef TASK_TIMER
+      Serial.printf("taskLora: %0.3f\n", (millis()-loraTimer)/1000.0);
+    #endif
   }
 }
 
@@ -349,6 +356,10 @@ void taskRTCM()
       Serial.println(rtcmString);
       Serial.println();
     }
+
+    #ifdef TASK_TIMER
+      Serial.printf("taskRTCM: %0.3f\n", (millis()-rtcmTimer)/1000.0);
+    #endif
   }
 }
 
@@ -395,9 +406,9 @@ void taskSD()
     // Close file
     dataFile.close();
   
-//    Serial.println();
-//    Serial.println("Writing to SD done.");
-//    Serial.println();
+    #ifdef TASK_TIMER
+      Serial.printf("taskSD: %0.3f\n", (millis()-sdTimer)/1000.0);
+    #endif
   }
 }
 
@@ -504,6 +515,10 @@ void taskUser()
           break;
       }
     }
+
+    #ifdef TASK_TIMER
+      Serial.printf("taskUser: %0.3f\n", (millis()-userTimer)/1000.0);
+    #endif
   }
 }
 
@@ -576,15 +591,16 @@ void sdBegin()
 void sendLora(byte myByte[], int arraySize)
 {
   LoRa.beginPacket();
+  LoRa.write(myByte, arraySize); // Way faster than LoRa.print
 
-  String myString;
-  for (int i = 0; i < arraySize; i++)
-  {
-    myString += String(myByte[i], HEX);
-    myString += " ";
-  }
-  LoRa.print(myString);
-  LoRa.endPacket();
+//  String myString;
+//  for (int i = 0; i < arraySize; i++)
+//  {
+//    myString += String(myByte[i], HEX);
+//    myString += " ";
+//  }
+//  LoRa.print(myString);
+  LoRa.endPacket(); // set true to prevent blocking code
 
   // Print Bytes
   if (LoraBytes)
@@ -652,9 +668,8 @@ void queryBasePosition()
   byte message[] = {0xA0, 0xA1, 0x00, 0x01, 0x23, 0x23, 0x0D, 0x0A};
   Serial2.write(message, sizeof(message));
   Serial2.flush();
-
-  
-  delay(50);
+//  clearPort();
+  while(!Serial2.available()) {}
 
   // Read all data from serial2 channel
   Serial2.flush();
@@ -755,6 +770,13 @@ void queryBasePosition()
   else
   {
     if (queryBytes) Serial.println("Unable to interpret command");
+
+//    for (int idx = 0; idx < sizeof(byteBuffer); idx++)
+//    {
+//      Serial.print(byteBuffer[idx], HEX);
+//      Serial.print(" ");
+//    }
+//    Serial.println("\n");
   }
 }
 

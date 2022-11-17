@@ -27,7 +27,7 @@
 #define ARRAY_SIZE 1000
 //#define FILE_SIZE 121 // # of lines per text file (one extra)
 #define FILE_SIZE 13 // # of lines per text file (one extra)
-#define SPREAD_FACTOR 7 // 6-12 (default 7)
+#define SPREAD_FACTOR 8 // 6-12 (default 7)
 
 // Define the pins used by the transceiver module
 #define ss 5
@@ -260,18 +260,40 @@ void taskRTCM()
     int packetSize = LoRa.parsePacket();
     if (packetSize and loraOn)
     {
+//      Serial.printf("Packet Size: %d bytes\n", packetSize);
+      
       // Set recieving flag to true
       receiving = true;
-      
-      // Read packet
-      String loraData;
-      while (LoRa.available())
-      {
-        loraData = LoRa.readString();
 
-        // Process the string into a byte array
-        processBytes(loraData);
+      byte myPacket[packetSize];
+      for (uint16_t i = 0; i < packetSize; i++)
+      {
+        myPacket[i] = LoRa.read();
+        if(rtcmStream)
+        {
+          Serial.print(myPacket[i], HEX);
+          Serial.print(" ");
+        }
       }
+      if(rtcmStream)
+      {
+        Serial.println();
+        Serial.printf("Message length: %d bytes\n", packetSize);
+        Serial.println();
+      }
+      Serial1.write(myPacket, packetSize);
+
+      
+      
+//      // Read packet
+//      String loraData;
+//      while (LoRa.available())
+//      {
+//        loraData = LoRa.readString();
+//
+//        // Process the string into a byte array
+//        processBytes(loraData);
+//      }
     }
   }
 }
