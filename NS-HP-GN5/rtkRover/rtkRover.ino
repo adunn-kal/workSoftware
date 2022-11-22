@@ -1,8 +1,8 @@
 // RTK Rover using NS-HP-GN5
 // 09/22/22
-// https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/ 
-// Data Sheet:
-// https://navspark.mybigcommerce.com/content/AN0039.pdf 
+// Data Sheet: https://navspark.mybigcommerce.com/content/AN0039.pdf 
+// GPS: https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/
+// LORA: https://github.com/sandeepmistry/arduino-LoRa/blob/master/API.md
 
   
 #include <SPI.h>
@@ -15,7 +15,7 @@
 
 #define RTCM_INTERVAL 5 // ms between RTCM updates
 #define NMEA_INTERVAL 2500 // ms between NMEA updates
-#define USER_INTERVAL 500 // ms between user interaction
+#define USER_INTERVAL 100 // ms between user interaction
 #define DATA_INTERVAL 5000 // ms between user interaction
 #define ACCURACY_INTERVAL  NMEA_INTERVAL // Set accuracy interval to the same as NMEA
 
@@ -137,6 +137,7 @@ void setup()
 {
   // Start computer-ESP serial
   Serial.begin(115200);
+  while(!Serial) {}
 
   // Start RTCM serial
   Serial1.begin(115200, SERIAL_8N1, RX1, TX1);
@@ -173,9 +174,7 @@ void setup()
   Serial2.flush();
   delay(500);
 
-  // Register a callback function to run when the LoRa module receives a packet
-  // Also set LoRa module to continuous receive mode
-//  LoRa.onReceive(&loraReceive);
+  // Set LoRa module to continuous receive mode
   LoRa.receive();
 
   printHelp();
@@ -207,30 +206,7 @@ void loop()
 //-------------------------------------------------------------------------
 
 
-void loraReceive(int packetSize)
-{
-  Serial.println("LoRa received!");
-  // Set recieving flag to true
-  receiving = true;
 
-  byte myPacket[packetSize];
-  for (uint16_t i = 0; i < packetSize; i++)
-  {
-    myPacket[i] = LoRa.read();
-    if(rtcmStream)
-    {
-      Serial.print(myPacket[i], HEX);
-      Serial.print(" ");
-    }
-  }
-  if(rtcmStream)
-  {
-    Serial.println();
-    Serial.printf("Message length: %d bytes\n", packetSize);
-    Serial.println();
-  }
-  Serial1.write(myPacket, packetSize);
-}
 
 
 
@@ -240,6 +216,61 @@ void loraReceive(int packetSize)
 
 //-------------------------------------------------------------------------
 //----- Tasks -------------------------------------------------------------
+
+void taskRTCM()
+{
+  if ((millis() - rtcmTimer) > RTCM_INTERVAL)
+  {
+    // Reset timer
+    rtcmTimer = millis();
+    
+    // Try to parse packet
+    int packetSize = LoRa.parsePacket();
+    if ((packetSize>24) && loraOn)
+    {
+//      Serial.printf("Packet Size: %d bytes\n", packetSize);
+      
+      // Set recieving flag to true
+      receiving = true;
+
+      byte myPacket[packetSize];
+      for (uint16_t i = 0; i < packetSize; i++)
+      {
+        myPacket[i] = LoRa.read();
+        if(rtcmStream)
+        {
+          Serial.print(myPacket[i], HEX);
+          Serial.print(" ");
+        }
+      }
+      if(rtcmStream)
+      {
+        Serial.println();
+        Serial.printf("Message length: %d bytes\n", packetSize);
+        Serial.println();
+      }
+      if (packetSize > 24)
+      {
+        Serial1.write(myPacket, packetSize);
+        Serial1.flush();
+      }
+
+      
+      
+//      // Read packet
+//      String loraData;
+//      while (LoRa.available())
+//      {
+//        loraData = LoRa.readString();
+//
+//        // Process the string into a byte array
+//        processBytes(loraData);
+//      }
+    }
+
+    if (timerStream) Serial.printf("Task RTCM: %dms\n", (millis()-rtcmTimer));
+  }
+}
 
 void taskData()
 {
@@ -277,57 +308,6 @@ void taskData()
     }
 
     if (timerStream) Serial.printf("Task Data: %dms\n", (millis()-dataTimer));
-  }
-}
-
-void taskRTCM()
-{
-  if ((millis() - rtcmTimer) > RTCM_INTERVAL)
-  {
-    // Reset timer
-    rtcmTimer = millis();
-    
-    // Try to parse packet
-    int packetSize = LoRa.parsePacket();
-    if (packetSize and loraOn)
-    {
-//      Serial.printf("Packet Size: %d bytes\n", packetSize);
-      
-      // Set recieving flag to true
-      receiving = true;
-
-      byte myPacket[packetSize];
-      for (uint16_t i = 0; i < packetSize; i++)
-      {
-        myPacket[i] = LoRa.read();
-        if(rtcmStream)
-        {
-          Serial.print(myPacket[i], HEX);
-          Serial.print(" ");
-        }
-      }
-      if(rtcmStream)
-      {
-        Serial.println();
-        Serial.printf("Message length: %d bytes\n", packetSize);
-        Serial.println();
-      }
-      Serial1.write(myPacket, packetSize);
-
-      
-      
-//      // Read packet
-//      String loraData;
-//      while (LoRa.available())
-//      {
-//        loraData = LoRa.readString();
-//
-//        // Process the string into a byte array
-//        processBytes(loraData);
-//      }
-    }
-
-    if (timerStream) Serial.printf("Task RTCM: %dms\n", (millis()-rtcmTimer));
   }
 }
 

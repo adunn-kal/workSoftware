@@ -30,6 +30,8 @@ void taskTX()
 {
   if ((millis() - txTimer) > TX_INTERVAL)
   {
+    txTimer = millis();
+    
     while (Serial.available())
     {
       Serial1.write(Serial.read());
@@ -41,6 +43,8 @@ void taskRX()
 {
   if ((millis() - rxTimer) > RX_INTERVAL)
   {
+    rxTimer = millis();
+    
     while (Serial1.available())
     {
       Serial.write(Serial1.read());
