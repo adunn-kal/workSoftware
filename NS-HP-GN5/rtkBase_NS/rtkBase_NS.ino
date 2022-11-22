@@ -28,8 +28,8 @@
 //-------------------------------------------------------------------------
 //----- Declare Constants -------------------------------------------------
 
-#define RTCM_INTERVAL 50 // ms between RTCM updates
-#define LORA_INTERVAL 50 // ms between NMEA updates
+#define RTCM_INTERVAL 20 // ms between RTCM updates
+#define LORA_INTERVAL 20 // ms between NMEA updates
 #define USER_INTERVAL 250 // ms between user interaction
 #define SD_INTERVAL 60*1000 // ms between SD card writing
 
@@ -37,6 +37,7 @@
 #define ARRAY_SIZE 1000
 #define TRY_SEND 2 // How many times to send partial rtcm messages
 #define SPREAD_FACTOR 8 // 6-12 (default 7)
+#define LORA_DELAY 50 // ms to delay between lora messages
 
 // Define Pins and Constants
 #define LED 2
@@ -142,7 +143,7 @@ void setup()
 
   LoRa.setSyncWord(0xF3);
   LoRa.setSpreadingFactor(SPREAD_FACTOR); // ranges from 6-12,default 7 (Higher is slower but better)
-  LoRa.setTxPower(20, true); // ranges from 14-20, higher takes more power but is better
+//  LoRa.setTxPower(20, true); // ranges from 14-20, higher takes more power but is better
   Serial.println("Starting!\n");
   Serial2.flush();
   delay(500);
@@ -231,13 +232,20 @@ void taskLORA()
         // Declare a fresh byte array of a size we can send, reset the number of bytes
         byte rtcmMessage[MAX_RTCM];
         int index = 0;
+        byte checkSum = 0;
 
         // Start at given index, end just before next index
         for (int idx = currentIndex; idx < (currentIndex+currentLength); idx++)
         {
-          rtcmMessage[index] = rtcmBytes[idx];
+          byte newByte = rtcmBytes[idx];
+          rtcmMessage[index] = newByte;
+
+          // Update checksum
+          checkSum ^= newByte;
           index++;
         }
+        rtcmMessage[index] = checkSum;
+        index++;
 
         // Sends the current message
         sendLora(rtcmMessage, index);
@@ -593,6 +601,7 @@ void sdBegin()
 
 void sendLora(byte myByte[], int arraySize)
 {
+  if (arraySize<26) return;
   while(!LoRa.beginPacket());
   LoRa.write(myByte, arraySize); // Way faster than LoRa.print
 
@@ -609,13 +618,18 @@ void sendLora(byte myByte[], int arraySize)
   if (LoraBytes)
   {
     Serial.println("\nSending Bytes:");
-    for (int i = 0; i < arraySize; i++)
+    for (int i = 0; i < arraySize-1; i++)
     {
       Serial.print(myByte[i], HEX);
       Serial.print(" ");
     }
-    Serial.printf("\nMessage Length: %d bytes.\n\n", arraySize);
+    Serial.printf("\nMessage Length: %d bytes.\n\n", arraySize-1);
   }
+
+  #ifdef LORA_DELAY
+//    Serial.printf("Delay %dms\n", LORA_DELAY);
+    delay(LORA_DELAY);
+  #endif
 }
 
 void clearPort()
