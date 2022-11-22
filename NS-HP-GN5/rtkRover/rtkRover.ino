@@ -15,7 +15,7 @@
 
 #define RTCM_INTERVAL 5 // ms between RTCM updates
 #define NMEA_INTERVAL 2500 // ms between NMEA updates
-#define USER_INTERVAL 500 // ms between user interaction
+#define USER_INTERVAL 100 // ms between user interaction
 #define DATA_INTERVAL 5000 // ms between user interaction
 #define ACCURACY_INTERVAL  NMEA_INTERVAL // Set accuracy interval to the same as NMEA
 
@@ -137,6 +137,7 @@ void setup()
 {
   // Start computer-ESP serial
   Serial.begin(115200);
+  while(!Serial) {}
 
   // Start RTCM serial
   Serial1.begin(115200, SERIAL_8N1, RX1, TX1);
@@ -173,9 +174,7 @@ void setup()
   Serial2.flush();
   delay(500);
 
-  // Register a callback function to run when the LoRa module receives a packet
-  // Also set LoRa module to continuous receive mode
-//  LoRa.onReceive(&loraReceive);
+  // Set LoRa module to continuous receive mode
   LoRa.receive();
 
   printHelp();
@@ -207,30 +206,7 @@ void loop()
 //-------------------------------------------------------------------------
 
 
-void loraReceive(int packetSize)
-{
-  Serial.println("LoRa received!");
-  // Set recieving flag to true
-  receiving = true;
 
-  byte myPacket[packetSize];
-  for (uint16_t i = 0; i < packetSize; i++)
-  {
-    myPacket[i] = LoRa.read();
-    if(rtcmStream)
-    {
-      Serial.print(myPacket[i], HEX);
-      Serial.print(" ");
-    }
-  }
-  if(rtcmStream)
-  {
-    Serial.println();
-    Serial.printf("Message length: %d bytes\n", packetSize);
-    Serial.println();
-  }
-  Serial1.write(myPacket, packetSize);
-}
 
 
 
@@ -312,7 +288,11 @@ void taskRTCM()
         Serial.printf("Message length: %d bytes\n", packetSize);
         Serial.println();
       }
-      Serial1.write(myPacket, packetSize);
+      if (packetSize > 24)
+      {
+        Serial1.write(myPacket, packetSize);
+        Serial1.flush();
+      }
 
       
       
