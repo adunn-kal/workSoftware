@@ -190,7 +190,7 @@ void taskLORA()
 {
   if (((millis() - loraTimer) > LORA_INTERVAL) and loraStream and rtcmLength)
   {
-    Serial.printf("\nRTCM Bytes to send: %d\n\n", rtcmLength);
+//    Serial.printf("\nRTCM Bytes to send: %d\n\n", rtcmLength);
     // Reset timer
     loraTimer = millis();
 
@@ -198,7 +198,7 @@ void taskLORA()
     parseBytes(rtcmBytes, rtcmLength);
     if (numRTCM > 2) digitalWrite(LED , HIGH);
 
-    if (LoraBytes)
+    if (rtcmStream)
     {
       Serial.println("\nFull Message:");
       for (int i = 0; i < rtcmLength; i++)
@@ -221,12 +221,12 @@ void taskLORA()
 
       int currentIndex = rtcmIDXs[i]; // Current place within rtcmBytes
 
-      if (LoraBytes) Serial.printf("Current message length: %d\nCurrent index: %d\n\n", currentLength, currentIndex);
+      if (rtcmStream) Serial.printf("Current message length: %d\nCurrent index: %d\n\n", currentLength, currentIndex);
       
       // If the current message is small enough to send in one packet, send it
       if (currentLength <= MAX_RTCM)
       {
-        if (LoraBytes) Serial.println("Writing message normally");
+        if (rtcmStream) Serial.println("Writing message normally");
         
         // Declare a fresh byte array of a size we can send, reset the number of bytes
         byte rtcmMessage[MAX_RTCM];
@@ -250,7 +250,7 @@ void taskLORA()
         int numPackets = currentLength / MAX_RTCM;
         if (currentLength % MAX_RTCM > 0) numPackets++;
 
-        if (LoraBytes) Serial.printf("Writing message in %d parts\n", numPackets);
+        if (rtcmStream) Serial.printf("Writing message in %d parts\n", numPackets);
 
         // Split the message into as many packets as needed and send them
         for (int packetNumber = 0; packetNumber < numPackets; packetNumber++)
@@ -261,7 +261,7 @@ void taskLORA()
           // Calculate starting and ending indeces
           int endIndex = min(currentIndex+MAX_RTCM, currentIndex+remainingLength);
           
-          if (LoraBytes) 
+          if (rtcmStream) 
           {
             Serial.printf("Packet number %d/%d\n", packetNumber+1, numPackets);
             Serial.printf("Bytes %d to %d\n", currentIndex, endIndex);
@@ -287,7 +287,7 @@ void taskLORA()
           // Update start index for next pass
           currentIndex += index - 3;
 
-          if (LoraBytes)
+          if (rtcmStream)
           {
             Serial.printf("Partial message %d/%d:\n", packetNumber + 1, numPackets);
 //            for (int i = 0; i < index; i++)
@@ -347,14 +347,7 @@ void taskRTCM()
     rtcmLength = i;
 
     String rtcmString = String(rtcmBuffer);
-
-    if (rtcmStream)
-    {
-      Serial.println();
-      Serial.println(rtcmString);
-      Serial.println();
-    }
-
+    
     if(timerStream) Serial.printf("taskRTCM: %0.3f\n", (millis()-rtcmTimer)/1000.0);
   }
 }
