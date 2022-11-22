@@ -1,8 +1,8 @@
 // RTK Rover using NS-HP-GN5
 // 09/22/22
-// https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/ 
-// Data Sheet:
-// https://navspark.mybigcommerce.com/content/AN0039.pdf 
+// Data Sheet: https://navspark.mybigcommerce.com/content/AN0039.pdf 
+// GPS: https://navspark.mybigcommerce.com/ns-hp-gn5-px1125r-l1-l5-rtk-breakout-board/
+// LORA: https://github.com/sandeepmistry/arduino-LoRa/blob/master/API.md
 
   
 #include <SPI.h>
@@ -217,45 +217,6 @@ void loop()
 //-------------------------------------------------------------------------
 //----- Tasks -------------------------------------------------------------
 
-void taskData()
-{
-  if ((millis() - dataTimer) > DATA_INTERVAL)
-  {
-    // Reset timer and increment counter
-    dataTimer = millis();
-    arrayCounter += 1;
-
-    // Fill arrays
-    timeArray[arrayCounter] = myTime;
-    dateArray[arrayCounter] = myDate;
-    dayArray[arrayCounter] = myDay;
-    monthArray[arrayCounter] = myMonth;
-    yearArray[arrayCounter] = myYear;
-    fixArray[arrayCounter] = fixType;
-    sivArray[arrayCounter] = numSats;
-    latArray[arrayCounter] = String(latMain) + "." + String(latDec);
-    longArray[arrayCounter] = String(longMain) + "." + String(longDec);
-    altArray[arrayCounter] = myAlt;
-
-    if (arrayCounter >= FILE_SIZE-2)
-    {
-      arrayCounter = -1;
-
-      // Verify that the files may be written
-      sdBegin();
-      sdWrite();
-    }
-
-    // Print data as it comes in if stream is on and fix is acquired
-    if (dataStream and fixType)
-    {
-      Serial.printf("%s %s, %d, %d, %d.%d, %d.%d, %f\n", myDate, myTime, fixType, numSats, latMain, latDec, longMain, longDec, myAlt);
-    }
-
-    if (timerStream) Serial.printf("Task Data: %dms\n", (millis()-dataTimer));
-  }
-}
-
 void taskRTCM()
 {
   if ((millis() - rtcmTimer) > RTCM_INTERVAL)
@@ -265,7 +226,7 @@ void taskRTCM()
     
     // Try to parse packet
     int packetSize = LoRa.parsePacket();
-    if (packetSize and loraOn)
+    if ((packetSize>24) && loraOn)
     {
 //      Serial.printf("Packet Size: %d bytes\n", packetSize);
       
@@ -308,6 +269,45 @@ void taskRTCM()
     }
 
     if (timerStream) Serial.printf("Task RTCM: %dms\n", (millis()-rtcmTimer));
+  }
+}
+
+void taskData()
+{
+  if ((millis() - dataTimer) > DATA_INTERVAL)
+  {
+    // Reset timer and increment counter
+    dataTimer = millis();
+    arrayCounter += 1;
+
+    // Fill arrays
+    timeArray[arrayCounter] = myTime;
+    dateArray[arrayCounter] = myDate;
+    dayArray[arrayCounter] = myDay;
+    monthArray[arrayCounter] = myMonth;
+    yearArray[arrayCounter] = myYear;
+    fixArray[arrayCounter] = fixType;
+    sivArray[arrayCounter] = numSats;
+    latArray[arrayCounter] = String(latMain) + "." + String(latDec);
+    longArray[arrayCounter] = String(longMain) + "." + String(longDec);
+    altArray[arrayCounter] = myAlt;
+
+    if (arrayCounter >= FILE_SIZE-2)
+    {
+      arrayCounter = -1;
+
+      // Verify that the files may be written
+      sdBegin();
+      sdWrite();
+    }
+
+    // Print data as it comes in if stream is on and fix is acquired
+    if (dataStream and fixType)
+    {
+      Serial.printf("%s %s, %d, %d, %d.%d, %d.%d, %f\n", myDate, myTime, fixType, numSats, latMain, latDec, longMain, longDec, myAlt);
+    }
+
+    if (timerStream) Serial.printf("Task Data: %dms\n", (millis()-dataTimer));
   }
 }
 
