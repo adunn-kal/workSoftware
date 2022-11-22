@@ -13,7 +13,6 @@
 
 // Comment out this line to deactivate SD card storage
 #define SD_ACTIVE
-#define TASK_TIMER
 
 //-------------------------------------------------------------------------
 
@@ -94,6 +93,7 @@ bool rtcmStream = false;
 bool loraStream = true;
 bool LoraBytes = false;
 bool queryBytes = false;
+bool timerStream = false;
 
 //-------------------------------------------------------------------------
 
@@ -113,6 +113,7 @@ void setup()
 {
   // Start computer-ESP serial
   Serial.begin(115200);
+  while(!Serial) {};
 
   // Start ESP-GPS serial
   Serial2.begin(115200, SERIAL_8N1, RX2, TX2);
@@ -143,7 +144,6 @@ void setup()
   LoRa.setSpreadingFactor(SPREAD_FACTOR); // ranges from 6-12,default 7 (Higher is slower but better)
   LoRa.setTxPower(20, true); // ranges from 14-20, higher takes more power but is better
   Serial.println("Starting!\n");
-  Serial1.flush();
   Serial2.flush();
   delay(500);
 
@@ -321,9 +321,7 @@ void taskLORA()
 
     digitalWrite(LED, LOW);
 
-    #ifdef TASK_TIMER
-      Serial.printf("taskLora: %0.3f\n", (millis()-loraTimer)/1000.0);
-    #endif
+    if(timerStream) Serial.printf("taskLora: %0.3f\n", (millis()-loraTimer)/1000.0);
   }
 }
 
@@ -357,9 +355,7 @@ void taskRTCM()
       Serial.println();
     }
 
-    #ifdef TASK_TIMER
-      Serial.printf("taskRTCM: %0.3f\n", (millis()-rtcmTimer)/1000.0);
-    #endif
+    if(timerStream) Serial.printf("taskRTCM: %0.3f\n", (millis()-rtcmTimer)/1000.0);
   }
 }
 
@@ -406,9 +402,7 @@ void taskSD()
     // Close file
     dataFile.close();
   
-    #ifdef TASK_TIMER
-      Serial.printf("taskSD: %0.3f\n", (millis()-sdTimer)/1000.0);
-    #endif
+    if(timerStream) Serial.printf("taskSD: %0.3f\n", (millis()-sdTimer)/1000.0);
   }
 }
 
@@ -486,6 +480,23 @@ void taskUser()
           }
           break;
 
+        case 'T':
+          // T: Toggle timers on/off
+          if (timerStream)
+          {
+            // Turn stream off
+            Serial.println("Timers disabled");
+            timerStream = false;
+          }
+
+          else
+          {
+            // Turn stream on
+            Serial.println("Timers enabled");
+            timerStream = true;
+          }
+          break;
+
         case 'c':
           // c: Clear all data
           Serial.println();
@@ -516,9 +527,7 @@ void taskUser()
       }
     }
 
-    #ifdef TASK_TIMER
-      Serial.printf("taskUser: %0.3f\n", (millis()-userTimer)/1000.0);
-    #endif
+    if(timerStream) Serial.printf("taskUser: %0.3f\n", (millis()-userTimer)/1000.0);
   }
 }
 
@@ -544,6 +553,7 @@ void printHelp()
   Serial.println("|| r: Toggle RTCM stream on/off  ||");
   Serial.println("|| l: Enable/Disable RTCM output ||");
   Serial.println("|| L: Enable/Disable LoRa print  ||");
+  Serial.println("|| T: Enable/Disable task timers ||");
   Serial.println("|| c: Clear all serial data      ||");
   Serial.println("|| B: Query base position        ||");
   Serial.println("||-------------------------------||");
@@ -590,7 +600,7 @@ void sdBegin()
 
 void sendLora(byte myByte[], int arraySize)
 {
-  LoRa.beginPacket();
+  while(!LoRa.beginPacket());
   LoRa.write(myByte, arraySize); // Way faster than LoRa.print
 
 //  String myString;
