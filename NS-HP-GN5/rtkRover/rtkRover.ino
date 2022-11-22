@@ -35,7 +35,7 @@
 #define dio0 4
 
 // Input RTCM from radio
-#define RX1 14
+#define RX1 14 // Unused
 #define TX1 32
 
 // Talk to GPS module, get NMEA
@@ -170,7 +170,7 @@ void setup()
 
   LoRa.setSyncWord(0xF3);
   LoRa.setSpreadingFactor(SPREAD_FACTOR); // ranges from 6-12,default 7 (Higher is slower but better)
-  LoRa.setTxPower(20, true); // ranges from 14-20, higher takes more power but is better
+//  LoRa.setTxPower(20, true); // ranges from 14-20, higher takes more power but is better
   Serial.println("Starting!\n");
   Serial1.flush();
   Serial2.flush();
