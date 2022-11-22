@@ -35,7 +35,7 @@
 #define dio0 4
 
 // Input RTCM from radio
-#define RX1 14
+#define RX1 14 // Unused
 #define TX1 32
 
 // Talk to GPS module, get NMEA
@@ -141,9 +141,11 @@ void setup()
 
   // Start RTCM serial
   Serial1.begin(115200, SERIAL_8N1, RX1, TX1);
+  while(!Serial1) {}
 
   // Start ESP-GPS serial
   Serial2.begin(115200, SERIAL_8N1, RX2, TX2);
+  while(!Serial2) {}
 
   // Set pins
   pinMode(LED, OUTPUT);
@@ -168,7 +170,7 @@ void setup()
 
   LoRa.setSyncWord(0xF3);
   LoRa.setSpreadingFactor(SPREAD_FACTOR); // ranges from 6-12,default 7 (Higher is slower but better)
-  LoRa.setTxPower(20, true); // ranges from 14-20, higher takes more power but is better
+//  LoRa.setTxPower(20, true); // ranges from 14-20, higher takes more power but is better
   Serial.println("Starting!\n");
   Serial1.flush();
   Serial2.flush();
@@ -225,7 +227,7 @@ void taskRTCM()
     rtcmTimer = millis();
     
     // Try to parse packet
-    int packetSize = LoRa.parsePacket();
+    uint8_t packetSize = LoRa.parsePacket();
     if ((packetSize>24) && loraOn)
     {
 //      Serial.printf("Packet Size: %d bytes\n", packetSize);
@@ -234,25 +236,37 @@ void taskRTCM()
       receiving = true;
 
       byte myPacket[packetSize];
-      for (uint16_t i = 0; i < packetSize; i++)
+      byte checkSum = 0;
+      for (uint16_t i = 0; i < packetSize-1; i++)
       {
-        myPacket[i] = LoRa.read();
-        if(rtcmStream)
-        {
-          Serial.print(myPacket[i], HEX);
-          Serial.print(" ");
-        }
+        byte newByte = LoRa.read();
+        myPacket[i] = newByte;
+        checkSum ^= newByte;
       }
-      if(rtcmStream)
+
+      if(LoRa.read() != checkSum)
       {
-        Serial.println();
-        Serial.printf("Message length: %d bytes\n", packetSize);
-        Serial.println();
+        Serial.println("Message Error!");
+        return;
       }
+
       if (packetSize > 24)
       {
-        Serial1.write(myPacket, packetSize);
+        while(Serial1.available()) Serial.println(Serial1.read(), HEX);
+        Serial1.write(myPacket, packetSize-1);
         Serial1.flush();
+
+        if(rtcmStream)
+        {
+          for (uint16_t i = 0; i < packetSize-1; i++)
+          {
+            Serial.print(myPacket[i], HEX);
+            Serial.print(" ");
+          }
+          Serial.println();
+          Serial.printf("Message length: %d bytes\n", packetSize-1);
+          Serial.println();
+        }
       }
 
       
