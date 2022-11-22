@@ -13,7 +13,7 @@
 //-------------------------------------------------------------------------
 //----- Declare Constants -------------------------------------------------
 
-#define RTCM_INTERVAL 10 // ms between RTCM updates
+#define RTCM_INTERVAL 5 // ms between RTCM updates
 #define NMEA_INTERVAL 2500 // ms between NMEA updates
 #define USER_INTERVAL 500 // ms between user interaction
 #define DATA_INTERVAL 5000 // ms between user interaction
@@ -104,6 +104,7 @@ bool nmeaStream = false;
 bool rtcmStream = true;
 bool loraOn = true;
 bool dataStream = true;
+bool timerStream = false;
 bool receiving = false;
 
 float lats[NUM];
@@ -172,6 +173,11 @@ void setup()
   Serial2.flush();
   delay(500);
 
+  // Register a callback function to run when the LoRa module receives a packet
+  // Also set LoRa module to continuous receive mode
+//  LoRa.onReceive(&loraReceive);
+  LoRa.receive();
+
   printHelp();
 
   packetNumber = 0;
@@ -201,7 +207,30 @@ void loop()
 //-------------------------------------------------------------------------
 
 
+void loraReceive(int packetSize)
+{
+  Serial.println("LoRa received!");
+  // Set recieving flag to true
+  receiving = true;
 
+  byte myPacket[packetSize];
+  for (uint16_t i = 0; i < packetSize; i++)
+  {
+    myPacket[i] = LoRa.read();
+    if(rtcmStream)
+    {
+      Serial.print(myPacket[i], HEX);
+      Serial.print(" ");
+    }
+  }
+  if(rtcmStream)
+  {
+    Serial.println();
+    Serial.printf("Message length: %d bytes\n", packetSize);
+    Serial.println();
+  }
+  Serial1.write(myPacket, packetSize);
+}
 
 
 
@@ -246,6 +275,8 @@ void taskData()
     {
       Serial.printf("%s %s, %d, %d, %d.%d, %d.%d, %f\n", myDate, myTime, fixType, numSats, latMain, latDec, longMain, longDec, myAlt);
     }
+
+    if (timerStream) Serial.printf("Task Data: %dms\n", (millis()-dataTimer));
   }
 }
 
@@ -295,6 +326,8 @@ void taskRTCM()
 //        processBytes(loraData);
 //      }
     }
+
+    if (timerStream) Serial.printf("Task RTCM: %dms\n", (millis()-rtcmTimer));
   }
 }
 
@@ -338,6 +371,8 @@ void taskNMEA()
 
     parseGPGGA(GPGGA);
     parsePSTI(PSTI);
+
+    if (timerStream) Serial.printf("Task NMEA: %dms\n", (millis()-nmeaTimer));
   }
 }
 
@@ -429,6 +464,23 @@ void taskUser()
             // Turn stream on
             Serial.println("RTCM correction over LoRa enabled");
             loraOn = true;
+          }
+          break;
+
+        case 'T':
+          // T: Toggle timers
+          if (timerStream)
+          {
+            // Turn stream off
+            Serial.println("Timers turned off");
+            timerStream = false;
+          }
+
+          else
+          {
+            // Turn stream on
+            Serial.println("Timers turned on");
+            timerStream = true;
           }
           break;
 
@@ -640,6 +692,8 @@ void taskUser()
           break;
       }
     }
+
+    if (timerStream) Serial.printf("Task User: %dms\n", (millis()-userTimer));
   }
 }
 
@@ -697,6 +751,8 @@ void taskAccuracy()
     posAcc /= (NUM - 1);
     posAcc = pow(posAcc, 0.5);
     posAcc *= (111*1000);
+
+    if (timerStream) Serial.printf("Task Accuracy: %dms\n", (millis()-accuracyTimer));
   }
 }
 
@@ -723,6 +779,7 @@ void printHelp()
   Serial.println("|| n: Toggle NMEA stream on/off  ||");
   Serial.println("|| r: Toggle RTCM stream on/off  ||");
   Serial.println("|| l: Enable/Disable RTCM input  ||");
+  Serial.println("|| T: Enable/Disable task timers ||");
   Serial.println("|| t: Print the current time     ||");
   Serial.println("|| p: Print the current position ||");
   Serial.println("|| f: Print the current fix type ||");

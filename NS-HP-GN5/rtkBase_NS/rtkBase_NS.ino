@@ -12,7 +12,7 @@
 //----- Configuration -----------------------------------------------------
 
 // Comment out this line to deactivate SD card storage
-//#define SD_ACTIVE
+#define SD_ACTIVE
 #define TASK_TIMER
 
 //-------------------------------------------------------------------------
