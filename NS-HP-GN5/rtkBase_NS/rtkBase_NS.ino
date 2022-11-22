@@ -604,14 +604,6 @@ void sendLora(byte myByte[], int arraySize)
   if (arraySize<26) return;
   while(!LoRa.beginPacket());
   LoRa.write(myByte, arraySize); // Way faster than LoRa.print
-
-//  String myString;
-//  for (int i = 0; i < arraySize; i++)
-//  {
-//    myString += String(myByte[i], HEX);
-//    myString += " ";
-//  }
-//  LoRa.print(myString);
   LoRa.endPacket(); // set true to prevent blocking code
 
   // Print Bytes
@@ -635,10 +627,7 @@ void sendLora(byte myByte[], int arraySize)
 void clearPort()
 {
   Serial2.flush();
-  while (Serial2.available())
-  {
-    Serial2.read();
-  }
+  while (Serial2.available()) Serial2.read();
 }
 
 void parseBytes(byte myByte[], int arraySize)
@@ -646,6 +635,7 @@ void parseBytes(byte myByte[], int arraySize)
   // Reset number of rtcm messages
   numRTCM = 0;
 
+  // Reset RTCM indexes (start of new message)
   for (int i = 0; i < 10; i++)
   {
     rtcmIDXs[i] = 0;
