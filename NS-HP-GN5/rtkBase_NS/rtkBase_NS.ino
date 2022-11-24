@@ -12,7 +12,7 @@
 //----- Configuration -----------------------------------------------------
 
 // Comment out this line to deactivate SD card storage
-#define SD_ACTIVE
+//#define SD_ACTIVE
 
 //-------------------------------------------------------------------------
 
@@ -28,8 +28,8 @@
 //-------------------------------------------------------------------------
 //----- Declare Constants -------------------------------------------------
 
-#define RTCM_INTERVAL 20 // ms between RTCM updates
-#define LORA_INTERVAL 20 // ms between NMEA updates
+#define RTCM_INTERVAL 300 // ms between RTCM updates
+#define LORA_INTERVAL 10 // ms between NMEA updates
 #define USER_INTERVAL 250 // ms between user interaction
 #define SD_INTERVAL 60*1000 // ms between SD card writing
 
@@ -67,10 +67,10 @@
 //-------------------------------------------------------------------------
 //----- Declare Variables -------------------------------------------------
 
-long rtcmTimer;
-long loraTimer;
-long userTimer;
-long sdTimer;
+uint16_t rtcmTimer;
+uint16_t loraTimer;
+uint16_t userTimer;
+uint16_t sdTimer;
 
 uint32_t fileCounter = 0;
 uint8_t savedBaseMode = 0;
@@ -85,10 +85,10 @@ uint32_t surveyLength = 0;
 
 
 byte rtcmBytes[ARRAY_SIZE];
-int rtcmLength;
+uint16_t rtcmLength;
 
-int numRTCM;
-int rtcmIDXs[ARRAY_SIZE];
+uint8_t numRTCM;
+uint8_t rtcmIDXs[ARRAY_SIZE];
 
 bool rtcmStream = false;
 bool loraStream = true;
@@ -123,9 +123,9 @@ void setup()
   pinMode(LED, OUTPUT);
   pinMode(TRIG, OUTPUT);
   pinMode(TRIG, LOW);
-  pinMode(ChS, OUTPUT);
 
   #ifdef SD_ACTIVE
+    pinMode(ChS, OUTPUT);
     SD.begin(ChS);
   #endif
 
@@ -185,6 +185,33 @@ void loop()
 
 //-------------------------------------------------------------------------
 //----- Tasks -------------------------------------------------------------
+
+// Get RTCM readings at set RTCM_INTERVAL
+void taskRTCM()
+{
+  if ((millis() - rtcmTimer) > RTCM_INTERVAL)
+  {
+    // Reset timer
+    rtcmTimer = millis();
+
+    // Read all data from serial2 channel
+    char rtcmBuffer[1000];
+    uint16_t i = 0;
+    Serial2.flush();
+    while (Serial2.available())
+    {
+      byte myByte = Serial2.read();
+      rtcmBuffer[i] = char(myByte);
+      rtcmBytes[i] = myByte;
+      i++;
+    }
+    rtcmLength = i;
+
+    String rtcmString = String(rtcmBuffer);
+    
+    if(timerStream) Serial.printf("taskRTCM: %0.3f\n", (millis()-rtcmTimer)/1000.0);
+  }
+}
 
 // Task to send RTCM bytes
 void taskLORA()
@@ -330,33 +357,6 @@ void taskLORA()
     digitalWrite(LED, LOW);
 
     if(timerStream) Serial.printf("taskLora: %0.3f\n", (millis()-loraTimer)/1000.0);
-  }
-}
-
-void taskRTCM()
-{
-  // Display RTCM readings at set RTCM_INTERVAL
-  if ((millis() - rtcmTimer) > RTCM_INTERVAL)
-  {
-    // Reset timer
-    rtcmTimer = millis();
-
-    // Read all data from serial2 channel
-    char rtcmBuffer[1000];
-    int i = 0;
-    Serial2.flush();
-    while (Serial2.available())
-    {
-      byte myByte = Serial2.read();
-      rtcmBuffer[i] = char(myByte);
-      rtcmBytes[i] = myByte;
-      i++;
-    }
-    rtcmLength = i;
-
-    String rtcmString = String(rtcmBuffer);
-    
-    if(timerStream) Serial.printf("taskRTCM: %0.3f\n", (millis()-rtcmTimer)/1000.0);
   }
 }
 

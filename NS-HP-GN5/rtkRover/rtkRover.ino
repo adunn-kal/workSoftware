@@ -24,10 +24,11 @@
 #define TRIG 13
 #define ChS 15
 #define NUM 60 // Standard deviation data
-#define ARRAY_SIZE 1000
+#define ARRAY_SIZE 700
 //#define FILE_SIZE 121 // # of lines per text file (one extra)
 #define FILE_SIZE 13 // # of lines per text file (one extra)
 #define SPREAD_FACTOR 8 // 6-12 (default 7)
+#define WRITE_DELAY 20
 
 // Define the pins used by the transceiver module
 #define ss 5
@@ -68,6 +69,7 @@ byte fullMessage[ARRAY_SIZE];
 int packetNumber = 0;
 int numPackets = 0;
 int packetIndex = 0;
+int errors = 0;
 
 String timeArray[FILE_SIZE];
 String dateArray[FILE_SIZE];
@@ -76,7 +78,7 @@ int sivArray[FILE_SIZE];
 String latArray[FILE_SIZE];
 String longArray[FILE_SIZE];
 float altArray[FILE_SIZE];
-long fileCounter;
+int fileCounter;
 String dayArray[FILE_SIZE];
 String monthArray[FILE_SIZE];
 String yearArray[FILE_SIZE];
@@ -86,10 +88,10 @@ String PSTI;
 
 float myLat;
 int latMain;
-long latDec;
+int latDec;
 float myLong;
 int longMain;
-long longDec;
+int longDec;
 float myAlt;
 String myTime;
 String myDate;
@@ -247,6 +249,7 @@ void taskRTCM()
       if(LoRa.read() != checkSum)
       {
         Serial.println("Message Error!");
+        errors++;
         return;
       }
 
@@ -254,7 +257,9 @@ void taskRTCM()
       {
         while(Serial1.available()) Serial.println(Serial1.read(), HEX);
         Serial1.write(myPacket, packetSize-1);
-        Serial1.flush();
+        #ifdef WRITE_DELAY
+          delay(WRITE_DELAY);
+        #endif
 
         if(rtcmStream)
         {
@@ -805,7 +810,7 @@ void sdBegin()
     dataFile.println("RTK Rover");
     dataFile.print("Spreading Factor: ");
     dataFile.println(String(SPREAD_FACTOR));
-    dataFile.println("UTC Time, Fix Type, SIV, Latitude, Longitude, Altitude");
+    dataFile.println("UTC Time, Fix Type, SIV, Latitude, Longitude, Altitude, Day, Month, Year, Errors");
     dataFile.close();
   }
 
@@ -860,12 +865,17 @@ void sdWrite()
     dataFile.print(",");
     dataFile.print(currentMonth);
     dataFile.print(",");
-    dataFile.println(currentYear);
+    dataFile.print(currentYear);
+    dataFile.print(",");
+    dataFile.println(String(errors));
     
   }
 
   //Close file
   dataFile.close();
+
+  // Reset number of errors
+  errors = 0;
 
   Serial.println();
   Serial.println("Writing to SD done.");
