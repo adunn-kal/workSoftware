@@ -28,7 +28,7 @@
 //#define FILE_SIZE 121 // # of lines per text file (one extra)
 #define FILE_SIZE 13 // # of lines per text file (one extra)
 #define SPREAD_FACTOR 8 // 6-12 (default 7)
-#define WRITE_DELAY 20
+#define WRITE_DELAY 10
 
 // Define the pins used by the transceiver module
 #define ss 5
@@ -257,8 +257,12 @@ void taskRTCM()
       {
         while(Serial1.available()) Serial.println(Serial1.read(), HEX);
         Serial1.write(myPacket, packetSize-1);
+        Serial1.flush();
+
+        // Pause to let byte buffer empty
         #ifdef WRITE_DELAY
-          delay(WRITE_DELAY);
+          long start = millis();
+          while ((millis() - start) < WRITE_DELAY) {}
         #endif
 
         if(rtcmStream)
