@@ -11,6 +11,24 @@
 #include <SD.h>
 
 //-------------------------------------------------------------------------
+//----- Mode --------------------------------------------------------------
+
+// Comment this line out to disable datestamps
+// WARNING: Not recommended if testing will last beyond midnight GMT
+//#define DATE_MODE
+
+//-------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+//-------------------------------------------------------------------------
 //----- Declare Constants -------------------------------------------------
 
 #define RTCM_INTERVAL 5 // ms between RTCM updates
@@ -25,10 +43,9 @@
 #define ChS 15
 #define NUM 60 // Standard deviation data
 #define ARRAY_SIZE 700
-//#define FILE_SIZE 121 // # of lines per text file (one extra)
 #define FILE_SIZE 13 // # of lines per text file (one extra)
 #define SPREAD_FACTOR 8 // 6-12 (default 7)
-#define WRITE_DELAY 10
+//#define WRITE_DELAY 10
 
 // Define the pins used by the transceiver module
 #define ss 5
@@ -36,12 +53,12 @@
 #define dio0 4
 
 // Input RTCM from radio
-#define RX1 14 // Unused
-#define TX1 32
+#define RX1 GPIO_NUM_14 // Unused
+#define TX1 GPIO_NUM_32
 
 // Talk to GPS module, get NMEA
-#define RX2 16
-#define TX2 17
+#define RX2 GPIO_NUM_16
+#define TX2 GPIO_NUM_17
 
 //-------------------------------------------------------------------------
 
@@ -71,20 +88,24 @@ int numPackets = 0;
 int packetIndex = 0;
 int errors = 0;
 
+int fileCounter;
 String timeArray[FILE_SIZE];
-String dateArray[FILE_SIZE];
 int fixArray[FILE_SIZE];
 int sivArray[FILE_SIZE];
 String latArray[FILE_SIZE];
 String longArray[FILE_SIZE];
 float altArray[FILE_SIZE];
-int fileCounter;
-String dayArray[FILE_SIZE];
-String monthArray[FILE_SIZE];
-String yearArray[FILE_SIZE];
+#ifdef DATE_MODE
+  String dayArray[FILE_SIZE];
+  String monthArray[FILE_SIZE];
+  String yearArray[FILE_SIZE];
+  String dateArray[FILE_SIZE];
+#endif
 
 String GPGGA;
-String PSTI;
+#ifdef DATE_MODE
+  String PSTI;
+#endif
 
 float myLat;
 int latMain;
@@ -94,13 +115,15 @@ int longMain;
 int longDec;
 float myAlt;
 String myTime;
-String myDate;
-String myDay;
-String myMonth;
-String myYear;
 int fixType;
 int numSats;
 float myAcc;
+#ifdef DATE_MODE
+  String myDate;
+  String myDay;
+  String myMonth;
+  String myYear;
+#endif
 
 bool nmeaStream = false;
 bool rtcmStream = true;
@@ -174,8 +197,8 @@ void setup()
   LoRa.setSpreadingFactor(SPREAD_FACTOR); // ranges from 6-12,default 7 (Higher is slower but better)
 //  LoRa.setTxPower(20, true); // ranges from 14-20, higher takes more power but is better
   Serial.println("Starting!\n");
-  Serial1.flush();
-  Serial2.flush();
+//  Serial1.flush();
+//  Serial2.flush();
   delay(500);
 
   // Set LoRa module to continuous receive mode
@@ -252,30 +275,26 @@ void taskRTCM()
         errors++;
         return;
       }
+      
+      Serial1.write(myPacket, packetSize-1);
+      Serial1.flush();
 
-      if (packetSize > 24)
+      // Pause to let byte buffer write
+      #ifdef WRITE_DELAY
+        long start = millis();
+        while ((millis() - start) < WRITE_DELAY) {}
+      #endif
+
+      if(rtcmStream)
       {
-        while(Serial1.available()) Serial.println(Serial1.read(), HEX);
-        Serial1.write(myPacket, packetSize-1);
-        Serial1.flush();
-
-        // Pause to let byte buffer empty
-        #ifdef WRITE_DELAY
-          long start = millis();
-          while ((millis() - start) < WRITE_DELAY) {}
-        #endif
-
-        if(rtcmStream)
+        for (uint16_t i = 0; i < packetSize-1; i++)
         {
-          for (uint16_t i = 0; i < packetSize-1; i++)
-          {
-            Serial.print(myPacket[i], HEX);
-            Serial.print(" ");
-          }
-          Serial.println();
-          Serial.printf("Message length: %d bytes\n", packetSize-1);
-          Serial.println();
+          Serial.print(myPacket[i], HEX);
+          Serial.print(" ");
         }
+        Serial.println();
+        Serial.printf("Message length: %d bytes\n", packetSize-1);
+        Serial.println();
       }
 
       
@@ -304,11 +323,13 @@ void taskData()
     arrayCounter += 1;
 
     // Fill arrays
+    #ifdef DATE_MODE
+      dateArray[arrayCounter] = myDate;
+      dayArray[arrayCounter] = myDay;
+      monthArray[arrayCounter] = myMonth;
+      yearArray[arrayCounter] = myYear;
+    #endif
     timeArray[arrayCounter] = myTime;
-    dateArray[arrayCounter] = myDate;
-    dayArray[arrayCounter] = myDay;
-    monthArray[arrayCounter] = myMonth;
-    yearArray[arrayCounter] = myYear;
     fixArray[arrayCounter] = fixType;
     sivArray[arrayCounter] = numSats;
     latArray[arrayCounter] = String(latMain) + "." + String(latDec);
@@ -327,7 +348,10 @@ void taskData()
     // Print data as it comes in if stream is on and fix is acquired
     if (dataStream and fixType)
     {
-      Serial.printf("%s %s, %d, %d, %d.%d, %d.%d, %f\n", myDate, myTime, fixType, numSats, latMain, latDec, longMain, longDec, myAlt);
+      #ifdef DATE_MODE
+        Serial.printf("%s ", myDate);
+      #endif
+      Serial.printf("%s, %d, %d, %d.%d, %d.%d, %f\n", myTime, fixType, numSats, latMain, latDec, longMain, longDec, myAlt);
     }
 
     if (timerStream) Serial.printf("Task Data: %dms\n", (millis()-dataTimer));
@@ -360,8 +384,11 @@ void taskNMEA()
 //    Serial.println();
 
     GPGGA = nmeaString.substring(0, nmeaString.indexOf('\n'));
-    PSTI = nmeaString.substring(nmeaString.indexOf("$PSTI"), nmeaString.indexOf("$PSTI")+200);
-    PSTI = PSTI.substring(0, PSTI.indexOf('\n'));
+
+    #ifdef DATE_MODE
+      PSTI = nmeaString.substring(nmeaString.indexOf("$PSTI"), nmeaString.indexOf("$PSTI")+200);
+      PSTI = PSTI.substring(0, PSTI.indexOf('\n'));
+    #endif
     
     if (nmeaStream)
     {
@@ -373,7 +400,9 @@ void taskNMEA()
     digitalWrite(LED, LOW);
 
     parseGPGGA(GPGGA);
-    parsePSTI(PSTI);
+    #ifdef DATE_MODE
+      parsePSTI(PSTI);
+    #endif
 
     if (timerStream) Serial.printf("Task NMEA: %dms\n", (millis()-nmeaTimer));
   }
@@ -491,8 +520,10 @@ void taskUser()
           // t: Print current time
           Serial.println();
           Serial.printf("UTC Time: %s\n", myTime);
-          Serial.printf("UTC Date: %s\n", myDate);
-          Serial.printf("UTC dateTime: %s %s\n", myDate, myTime);
+          #ifdef DATE_MODE
+            Serial.printf("UTC Date: %s\n", myDate);
+            Serial.printf("UTC dateTime: %s %s\n", myDate, myTime);
+          #endif
           Serial.println();
           break;
 
@@ -841,11 +872,13 @@ void sdWrite()
   for (int i = 0; i < FILE_SIZE-1; i++)
   {    
     //Create strings for measurement, time, and temp
+    #ifdef DATE_MODE
+      String currentDate = dateArray[i];
+      String currentDay = dayArray[i];
+      String currentMonth = monthArray[i];
+      String currentYear = yearArray[i];
+    #endif
     String currentTime = timeArray[i];
-    String currentDate = dateArray[i];
-    String currentDay = dayArray[i];
-    String currentMonth = monthArray[i];
-    String currentYear = yearArray[i];
     String currentFix = String(fixArray[i]);
     String currentSIV = String(sivArray[i]);
     String currentLat = latArray[i];
@@ -865,12 +898,14 @@ void sdWrite()
     dataFile.print(",");
     dataFile.print(currentAlt);
     dataFile.print(",");
-    dataFile.print(currentDay);
-    dataFile.print(",");
-    dataFile.print(currentMonth);
-    dataFile.print(",");
-    dataFile.print(currentYear);
-    dataFile.print(",");
+    #ifdef DATE_MODE
+      dataFile.print(currentDay);
+      dataFile.print(",");
+      dataFile.print(currentMonth);
+      dataFile.print(",");
+      dataFile.print(currentYear);
+      dataFile.print(",");
+    #endif
     dataFile.println(String(errors));
     
   }
@@ -963,6 +998,7 @@ void parseGPGGA(String sentence)
   }
 }
 
+#ifdef DATE_MODE
 void parsePSTI(String sentence)
 {  
   // https://navspark.mybigcommerce.com/content/PX1122R_DS.pdf
@@ -987,6 +1023,7 @@ void parsePSTI(String sentence)
 //    Serial.printf("Date: %s\n", myDate);
   }
 }
+#endif
 
 void getTime()
 {
