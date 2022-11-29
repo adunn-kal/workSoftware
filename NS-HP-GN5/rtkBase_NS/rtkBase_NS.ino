@@ -116,6 +116,9 @@ void setup()
   Serial.begin(115200);
   while(!Serial) {};
 
+  pinMode(RX2, INPUT_PULLUP);
+  pinMode(TX2, INPUT_PULLUP);
+
   // Start ESP-GPS serial
   Serial2.begin(115200, SERIAL_8N1, RX2, TX2);
 
