@@ -14,7 +14,7 @@
 //----- Mode --------------------------------------------------------------
 
 // Comment this line out to disable datestamps
-// WARNING: Not recommended if testing will last beyond midnight GMT
+// WARNING: Recommended if testing will last beyond midnight GMT
 //#define DATE_MODE
 
 //-------------------------------------------------------------------------
