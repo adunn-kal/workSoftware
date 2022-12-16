@@ -11,22 +11,24 @@
 #include <Arduino.h>
 #include "SD.h"
 #include "UnixTime.h"
+#include <utility>
 #include "sdData.h"
 
 
-File SD_Data :: createFile(char* format_buf, bool hasFix, uint32_t wakeCounter, UnixTime time, uint64_t sleep_time)
+/**
+ * @brief A constructor for the SD_Data class
+ * 
+ * @param pin The pin used for the SD chip select
+ * @return SD_Data 
+ */
+SD_Data :: SD_Data(gpio_num_t pin)
 {
-    // Filenames are at most 8 characters + 6("/Data/") + 4(".txt") + null terminator = 19
+    // Update CS pin
+    CS = pin;
 
-    // If the gps has a fix, use its timestamp
-    if (hasFix || sleep_time != 0) snprintf(format_buf, 19 , "/Data/%x.txt", time);
-
-    // If no GPS fix, use wake counter
-    else snprintf(format_buf, 19, "/Data/%x_%x.txt", wakeCounter, millis());
-
-    File file = SD.open(*format_buf, FILE_WRITE, true);
-    assert(file);
-    return file;
+    // Start SD stuff
+    pinMode(CS, OUTPUT);
+    assert(SD.begin(CS));
 }
 
 /**
@@ -58,6 +60,32 @@ void SD_Data :: writeHeader(char* startTime)
 }
 
 /**
+ * @brief Open a new file
+ * 
+ * @param hasFix Whether or not the GPS has a fix
+ * @param wakeCounter The number of wake cycles
+ * @param time The current unix timestamp
+ * @param sleep_time The time in which the device must sleep
+ * @return The opened file
+ */
+File SD_Data :: createFile(bool hasFix, uint32_t wakeCounter, UnixTime time, uint64_t sleep_time)
+{
+    // Filenames are at most 8 characters + 6("/Data/") + 4(".txt") + null terminator = 19
+    if (hasFix || sleep_time != 0) // If the gps has a fix, use its timestamp
+    {
+        snprintf(format_buf, 19 , "/Data/%x.txt", time);
+    }
+    else // If no GPS fix, use wake counter
+    {
+        snprintf(format_buf, 19, "/Data/%x_%x.txt", wakeCounter, millis());
+    }
+
+    File file = SD.open(format_buf, FILE_WRITE, true);
+    assert(file);
+    return file;
+}
+
+/**
  * @brief A method to write a log message to the SD card
  * 
  * @param message A pointer to the message to write
@@ -82,4 +110,14 @@ void SD_Data :: writeLog(const char* message, uint8_t month, uint8_t day,
     logFile.printf("%d/%d/20%d, %s: %s\nwake count: %d\n", month, day, year, time, message, wakeCounter);
     if(hasFix) logFile.printf("%f, %f, %f\n", latitude, longitude, altitude);
     logFile.close();
+}
+
+/**
+ * @brief A method to update the formatted buffer
+ * 
+ * @param buffer The new formatted buffer
+ */
+void SD_Data :: updateBuffer(const char* buffer)
+{
+    strcpy(format_buf, buffer);
 }
