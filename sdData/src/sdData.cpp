@@ -36,7 +36,7 @@ SD_Data :: SD_Data(gpio_num_t pin)
  * 
  * @param startTime The unix timestamp indicating the start time
  */
-void SD_Data :: writeHeader(char* startTime)
+void SD_Data :: writeHeader(char startTime)
 {
     // Check if file exists and create one if not
     if (!SD.exists("/README.txt"))
@@ -120,4 +120,32 @@ void SD_Data :: writeLog(const char* message, uint8_t month, uint8_t day,
 void SD_Data :: updateBuffer(const char* buffer)
 {
     strcpy(format_buf, buffer);
+}
+
+/**
+ * @brief A method to take a write data to the SD card
+ * 
+ * @param data_file A reference to the data file to be written to
+ * @param distance The distance measured by the SONAR sensor
+ * @param unixTime The unix timestamp for when the data was recorded
+ * @param temperature The current temperature measured by the temperature and humidity sensor
+ * @param humidity The current humidity measured by the temperature and humidity sensor
+ * @param hasFix Whether or not the GPS has a fix
+ * @return sensorData An object containing all of the data
+ */
+void SD_Data :: writeData(File &data_file, int32_t distance, char* unixTime, float temperature, float humidity, bool hasFix)
+{
+    int result = snprintf(format_buf, FORMAT_BUF_SIZE, "%s, %d, %f, %f, %d\n",
+                          unixTime,
+                          distance,
+                          temperature,
+                          humidity,
+                          hasFix);
+
+    if(result < 0) {} //Format error, do nothing
+    else
+    {
+        // Some or all data succesfuly formatted into buffer
+        data_file.write((uint8_t*)format_buf, (uint32_t)result);
+    }
 }

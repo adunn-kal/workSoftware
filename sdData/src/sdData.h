@@ -18,16 +18,15 @@ class SD_Data
     protected:
         // Protected data
         gpio_num_t CS;
-        char format_buf[200];
+        #define FORMAT_BUF_SIZE 200
+        char format_buf[FORMAT_BUF_SIZE];
 
     public:
         // Public data
 
         SD_Data(gpio_num_t pin); ///< A constructor for the SD_Data class
 
-        // void writeData()
-
-        void writeHeader(char* startTime); ///< A method to check and format header files
+        void writeHeader(char startTime); ///< A method to check and format header files
 
         /// A method to open a new file
         File createFile(bool hasFix, uint32_t wakeCounter, UnixTime time, uint64_t sleep_time);
@@ -37,5 +36,8 @@ class SD_Data
                       uint8_t year, char* time, uint32_t wakeCounter,
                       bool hasFix, float latitude, float longitude, float altitude);
 
-        void updateBuffer(const char* buffer); ///< Update the format_buf
+        /// A method to write data to the sd card
+        void writeData(File &data_file, int32_t distance, char* unixTime, float temperature, float humidity, bool hasFix);
+        
+        void updateBuffer(const char* buffer); ///< A method to update the format_buf
 };
