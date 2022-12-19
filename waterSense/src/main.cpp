@@ -21,7 +21,10 @@
 #include "UnixTime.h"
 #include <esp_now.h>
 #include <WiFi.h>
+
+// My Libraries
 #include "maxbotixSonar.h"
+#include "adafruitTempHumidity.h"
 
 
 
@@ -115,6 +118,7 @@
 //---------- Class Objects ----------------------------------------------------------------------------||
 
 MaxbotixSonar mySonar(&Serial1, SONAR_RX, SONAR_TX, SONAR_EN);
+AdafruitTempHumidity myTemp(TEMP_EN, TEMP_SENSOR_ADDRESS);
 
 //-----------------------------------------------------------------------------------------------------||
 //-----------------------------------------------------------------------------------------------------||

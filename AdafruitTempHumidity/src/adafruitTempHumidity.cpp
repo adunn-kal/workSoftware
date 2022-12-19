@@ -14,15 +14,12 @@
 /**
  * @brief A constructor for the Adafruit temperature and humidity sensor class
  * 
- * @param rxPin The RX pin for the serial port
- * @param txPin The TX pin for the serial port
  * @param enPin The enable pin for the sensor
+ * @param hexAddress The i2c hex address of the sensor
  * @return AdafruitTempHumidity A class object
  */
-AdafruitTempHumidity :: AdafruitTempHumidity(gpio_num_t rxPin, gpio_num_t txPin, gpio_num_t enPin, uint8_t hexAddress)
+AdafruitTempHumidity :: AdafruitTempHumidity(gpio_num_t enPin, uint8_t hexAddress)
 {
-    RX = rxPin;
-    TX = txPin;
     EN = enPin;
     ADDRESS = hexAddress;
 }

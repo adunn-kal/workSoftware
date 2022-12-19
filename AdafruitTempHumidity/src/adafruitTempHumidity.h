@@ -15,10 +15,6 @@ class AdafruitTempHumidity
 {
     protected:
         // Any protected class variables go here
-        uint8_t LED_BUILTIN = GPIO_NUM_2; ///< Builtin LED pin for MCU
-
-        gpio_num_t RX;
-        gpio_num_t TX;
         gpio_num_t EN;
         uint8_t ADDRESS;
 
@@ -27,7 +23,7 @@ class AdafruitTempHumidity
     public:
         // Public class attributes and methods
 
-        AdafruitTempHumidity(gpio_num_t rxPin, gpio_num_t txPin, gpio_num_t enPin, uint8_t hexAddress); ///< Constructor
+        AdafruitTempHumidity(gpio_num_t enPin, uint8_t hexAddress); ///< Constructor
 
         void begin(void); ///< A method to initialize the class objects
         void sleep(void); ///< A method to put the sensor to sleep
