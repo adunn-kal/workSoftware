@@ -47,6 +47,7 @@ void MaxbotixSonar :: begin(void)
 void MaxbotixSonar :: sleep(void)
 {
     digitalWrite(EN, LOW);
+    gpio_hold_en(EN);
 }
 
 /**
