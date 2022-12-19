@@ -16,15 +16,15 @@
 #include <SD.h>
 #include <driver/timer.h>
 #include <soc/rtc.h>
-#include "Adafruit_SHT31.h"
 #include "Adafruit_GPS.h"
 #include "UnixTime.h"
 #include <esp_now.h>
 #include <WiFi.h>
 
-// My Libraries
+// New Libraries
 #include "maxbotixSonar.h"
 #include "adafruitTempHumidity.h"
+#include "taskshare.h"
 
 
 
@@ -100,7 +100,12 @@
 //-----------------------------------------------------------------------------------------------------||
 //---------- Shares & Queues --------------------------------------------------------------------------||
 
-// Pass
+// Sleep shares
+Share<bool> sleepFlag("Sleep Flag"); ///< A shared variable to trigger sleep operations
+Share<bool> clockSleepReady("Clock Sleep Ready"); ///< A shared variable to indicate the clock is ready to sleep
+Share<bool> sonarSleepReady("Sonar Sleep Ready"); ///< A shared variable to indicate the sonar sensor is ready to sleep
+Share<bool> tempSleepReady("Temp Sleep Ready"); ///< A shared variable to indicate the temp sensor is ready to sleep
+Share<bool> sdSleepReady("SD Sleep Ready"); ///< A shared variable to indicate the SD card is ready to sleep
 
 //-----------------------------------------------------------------------------------------------------||
 //-----------------------------------------------------------------------------------------------------||
@@ -153,8 +158,11 @@ void taskMeasure(void* params)
     {
       // Setup sonar
       mySonar.begin();
+      sonarSleepReady.put(false);
 
       // Setup temp/humidity
+      myTemp.begin();
+      tempSleepReady.put(false);
 
       state = 1;
     }
@@ -169,16 +177,21 @@ void taskMeasure(void* params)
       }
 
       // If sleepFlag is tripped, go to state 3
+      if (sleepFlag.get())
+      {
+        state = 3;
+      }
     }
 
     // Get measurements
     else if (state == 2)
     {
       // Get sonar measurement
-      Serial.println(mySonar.measure());
-
-      // Get temp measurement
-      // Get humidity measurement
+      Serial.print(mySonar.measure());
+      Serial.print(", ");
+      Serial.print(myTemp.getTemp());
+      Serial.print(", ");
+      Serial.println(myTemp.getHum());
 
       // Write all data to shares
       // Trip dataFlag
@@ -191,8 +204,11 @@ void taskMeasure(void* params)
     {
       // Disable sonar
       mySonar.sleep();
+      sonarSleepReady.put(true);
 
       // Disable temp/humidity
+      myTemp.sleep();
+      tempSleepReady.put(true);
     }
 
     vTaskDelay(MEASUREMENT_PERIOD);
@@ -280,6 +296,9 @@ void taskSleep(void* params)
       // Start run timer
       runTimer = millis();
 
+      // Make sure sleep flag is not set
+      sleepFlag.put(false);
+
       Serial.println("Sleep state 0 -> 1");
       state = 1;
     }
@@ -291,6 +310,9 @@ void taskSleep(void* params)
       if ((millis() - runTimer) > READ_TIME*1000)
       {
         Serial.println("Sleep state 1 -> 2");
+
+        // Set sleep flag
+        sleepFlag.put(true);
         state = 2;
       }
     }
@@ -298,10 +320,12 @@ void taskSleep(void* params)
     // Initiate Sleep
     else if (state == 2)
     {
-      // Set sleep flag
       // If all tasks are ready to sleep, go to state 3
-      Serial.println("Sleep state 2 -> 3");
-      state = 3;
+      if (sonarSleepReady.get() && tempSleepReady.get())
+      {
+        Serial.println("Sleep state 2 -> 3");
+        state = 3;
+      }
     }
 
     // Sleep
@@ -309,7 +333,12 @@ void taskSleep(void* params)
     {
       // Go to sleep
       Serial.println("Going to sleep");
-      delay(10*1000);
+      
+      uint64_t sleepTime = 10*1000000;
+      gpio_deep_sleep_hold_en();
+      esp_sleep_enable_timer_wakeup(sleepTime);
+      esp_deep_sleep_start();
+
       state = 0;
     }
 
