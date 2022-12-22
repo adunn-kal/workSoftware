@@ -101,19 +101,27 @@
 //-----------------------------------------------------------------------------------------------------||
 //---------- Shares & Queues --------------------------------------------------------------------------||
 
-// Sleep shares
+// Flags
+Share<bool> dataReady("Data Ready"); ///< A shared variable to indicate availability of new ultrasonic measurements
 Share<bool> sleepFlag("Sleep Flag"); ///< A shared variable to trigger sleep operations
 Share<bool> clockSleepReady("Clock Sleep Ready"); ///< A shared variable to indicate the clock is ready to sleep
 Share<bool> sonarSleepReady("Sonar Sleep Ready"); ///< A shared variable to indicate the sonar sensor is ready to sleep
 Share<bool> tempSleepReady("Temp Sleep Ready"); ///< A shared variable to indicate the temp sensor is ready to sleep
 Share<bool> sdSleepReady("SD Sleep Ready"); ///< A shared variable to indicate the SD card is ready to sleep
 
-// Shares from GPS
-Share<float> latitude("Latitude");
-Share<float> longitude("Longitude");
-Share<float> altitude("Altitude");
-Share<uint8_t> fixType("Fix Type");
-Share<String> unixTime("Unix Time");
+// Shares from GPS Clock
+Share<float> latitude("Latitude"); ///< The current latitude
+Share<float> longitude("Longitude"); ///< The current longitude
+Share<float> altitude("Altitude"); ///< The current altitude
+Share<uint8_t> fixType("Fix Type"); ///< The current fix type
+Share<String> unixTime("Unix Time"); ///< The current Unix timestamp relative to GMT
+Share<String> displayTime("Display Time"); ///< The current time of day relative to GMT
+
+// Shares from sensors
+Share<int16_t> distance("Distance"); ///< The distance measured by the ultrasonic sensor in millimeters
+Share<float> temperature("Temperature"); ///< The temperature in Fahrenheit
+Share<float> humidity("Humidity"); ///< The relative humidity in %
+
 
 //-----------------------------------------------------------------------------------------------------||
 //-----------------------------------------------------------------------------------------------------||
@@ -196,14 +204,12 @@ void taskMeasure(void* params)
     else if (state == 2)
     {
       // Get sonar measurement
-      Serial.print(mySonar.measure());
-      Serial.print(", ");
-      Serial.print(myTemp.getTemp());
-      Serial.print(", ");
-      Serial.println(myTemp.getHum());
+      distance.put(mySonar.measure());
+      temperature.put(myTemp.getTemp());
+      humidity.put(myTemp.getHum());
 
-      // Write all data to shares
       // Trip dataFlag
+      dataReady.put(true);
 
       state = 1;
     }
@@ -249,8 +255,17 @@ void taskSD(void* params)
     else if (state == 1)
     {
       // If data is available, untrip dataFlag go to state 2
+      if (dataReady.get())
+      {
+        dataReady.put(false);
+        state = 2;
+      }
 
       // If sleepFlag is tripped, go to state 3
+      if (sleepFlag.get())
+      {
+        state = 3;
+      }
     }
     // Store data
     else if (state == 2)
@@ -259,6 +274,7 @@ void taskSD(void* params)
       // Get temp data
       // Get humidity data
       // Get timestamp 
+      Serial.printf("%s, %d, %0.2f, %0.2f\n", unixTime.get(), distance.get(), temperature.get(), humidity.get());
 
       // Write all data to SD card
       state = 1;
@@ -322,7 +338,8 @@ void taskClock(void* params)
       longitude.put(myGPS.longitude);
       altitude.put(myGPS.altitude);
       fixType.put(myGPS.fixType);
-      unixTime.put(myGPS.getUnix(myClock));
+      unixTime.put(myGPS.getUnixTime(myClock));
+      displayTime.put(myGPS.getDisplayTime(myClock));
       
       state = 1;
     }
@@ -433,8 +450,8 @@ void setup()
 
   // Setup tasks
   xTaskCreate(taskMeasure, "Measurement Task", 8192, NULL, 3, NULL);
-  // xTaskCreate(taskSD, "SD Task", 8192, NULL, 7, NULL);
-  // xTaskCreate(taskClock, "Clock Task", 8192, NULL, 5, NULL);
+  xTaskCreate(taskSD, "SD Task", 8192, NULL, 7, NULL);
+  xTaskCreate(taskClock, "Clock Task", 8192, NULL, 5, NULL);
   xTaskCreate(taskSleep, "Sleep Task", 8192, NULL, 1, NULL);
 }
 
