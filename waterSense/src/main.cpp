@@ -34,7 +34,7 @@
 
 #define MEASUREMENT_PERIOD 100 ///< Measurement task period in ms
 #define SD_PERIOD 10 ///< SD task period in ms
-#define CLOCK_PERIOD 100 ///< Clock task period in ms
+#define CLOCK_PERIOD 10 ///< Clock task period in ms
 #define SLEEP_PERIOD 100 ///< Sleep task period in ms
 
 #define READ_TIME 20 ///< Length of time to measure in seconds
@@ -75,7 +75,7 @@
  * @details GPS measurements are disabled when this pin is pulled low
  * 
  */
-#define GPS_CLOCK_EN GPIO_NUM_27
+#define GPS_EN GPIO_NUM_27
 
 #define TEMP_SENSOR_ADDRESS 0x44 ///< Temperature and humidity sensor hex address
 
@@ -108,6 +108,13 @@ Share<bool> sonarSleepReady("Sonar Sleep Ready"); ///< A shared variable to indi
 Share<bool> tempSleepReady("Temp Sleep Ready"); ///< A shared variable to indicate the temp sensor is ready to sleep
 Share<bool> sdSleepReady("SD Sleep Ready"); ///< A shared variable to indicate the SD card is ready to sleep
 
+// Shares from GPS
+Share<float> latitude("Latitude");
+Share<float> longitude("Longitude");
+Share<float> altitude("Altitude");
+Share<uint8_t> fixType("Fix Type");
+Share<String> unixTime("Unix Time");
+
 //-----------------------------------------------------------------------------------------------------||
 //-----------------------------------------------------------------------------------------------------||
 
@@ -125,6 +132,7 @@ Share<bool> sdSleepReady("SD Sleep Ready"); ///< A shared variable to indicate t
 
 MaxbotixSonar mySonar(&Serial1, SONAR_RX, SONAR_TX, SONAR_EN);
 AdafruitTempHumidity myTemp(TEMP_EN, TEMP_SENSOR_ADDRESS);
+GpsClock myGPS(&Serial2, GPS_RX, GPS_TX, GPS_EN);
 
 //-----------------------------------------------------------------------------------------------------||
 //-----------------------------------------------------------------------------------------------------||
@@ -273,7 +281,62 @@ void taskSD(void* params)
  */
 void taskClock(void* params)
 {
-  
+  Adafruit_GPS myClock = myGPS.begin();
+  uint8_t state = 0;
+
+  while (true)
+  {
+    // Begin
+    if (state == 0)
+    {
+      // Any setup?
+
+      state = 1;
+    }
+
+    // Read
+    else if (state == 1)
+    {
+      // Update the GPS
+      myGPS.update(myClock);
+
+      // If new data is available, go to state 2
+      if (myGPS.newData)
+      {
+        state = 2;
+      }
+
+      // If sleepFlag is tripped, go to state 3
+      if (sleepFlag.get())
+      {
+        state = 3;
+      }
+    }
+
+    // Update
+    else if (state == 2)
+    {
+      myGPS.update(myClock);
+
+      latitude.put(myGPS.latitude);
+      longitude.put(myGPS.longitude);
+      altitude.put(myGPS.altitude);
+      fixType.put(myGPS.fixType);
+      unixTime.put(myGPS.getUnix(myClock));
+      
+      state = 1;
+    }
+
+    // Sleep
+    else if (state == 3)
+    {
+      // Disable sonar
+      myGPS.sleep();
+      clockSleepReady.put(true);
+    }
+
+    vTaskDelay(CLOCK_PERIOD);
+  }
 }
 
 /**
@@ -322,7 +385,7 @@ void taskSleep(void* params)
     else if (state == 2)
     {
       // If all tasks are ready to sleep, go to state 3
-      if (sonarSleepReady.get() && tempSleepReady.get())
+      if (sonarSleepReady.get() && tempSleepReady.get() && clockSleepReady.get())
       {
         Serial.println("Sleep state 2 -> 3");
         state = 3;
