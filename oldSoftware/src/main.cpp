@@ -590,6 +590,7 @@ void loop(void)
             //Serial.println(GPS.lastNMEA());   // this also sets the newNMEAreceived() flag to false
             GPS.parse(GPS.lastNMEA());  // this also sets the newNMEAreceived() flag to false
             gps_millis_offset = millis() - GPS.milliseconds;
+            Serial.println(gps_millis_offset);
         }
     }
 
