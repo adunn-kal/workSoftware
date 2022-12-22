@@ -24,6 +24,7 @@
 // New Libraries
 #include "maxbotixSonar.h"
 #include "adafruitTempHumidity.h"
+#include "gpsClock.h"
 #include "taskshare.h"
 
 
