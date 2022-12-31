@@ -41,6 +41,8 @@
 #define READ_TIME 20 ///< Length of time to measure in seconds
 #define MINUTE_ALLIGN 2 ///< Allignment time in minutes
 
+#define FIX_DELAY 120 ///< Seconds to wait for first GPS fix
+
 RTC_DATA_ATTR uint32_t wakeCounter = 0; ///< A counter representing the number of wake cycles
 
 //-----------------------------------------------------------------------------------------------------||
@@ -120,6 +122,7 @@ Share<uint8_t> fixType("Fix Type"); ///< The current fix type
 Share<String> unixTime("Unix Time"); ///< The current Unix timestamp relative to GMT
 Share<String> displayTime("Display Time"); ///< The current time of day relative to GMT
 Share<bool> wakeReady("Wake Ready"); ///< Indicates whether or not the device is ready to wake
+Share<uint64_t> sleepTime("Sleep Time"); ///< The number of microseconds to sleep
 
 // Shares from sensors
 Share<int16_t> distance("Distance"); ///< The distance measured by the ultrasonic sensor in millimeters
@@ -403,7 +406,10 @@ void taskClock(void* params)
     // Sleep
     else if (state == 3)
     {
-      // Disable sonar
+      // Calculate sleep time
+      sleepTime.put(myGPS.getSleepTime(myClock, MINUTE_ALLIGN, READ_TIME));
+
+      // Disable GPS
       myGPS.sleep();
       clockSleepReady.put(true);
     }
@@ -412,7 +418,7 @@ void taskClock(void* params)
     else if (state == 4)
     {
       wakeCounter = 0;
-      wakeReady.put(myGPS.getFix(myClock, 120));
+      wakeReady.put(myGPS.getFix(myClock, FIX_DELAY));
 
       state = 1;
     }
@@ -485,12 +491,14 @@ void taskSleep(void* params)
     // Sleep
     else if (state == 3)
     {
+      // Get sleep time
+      uint64_t mySleep = sleepTime.get();
+
       // Go to sleep
-      Serial.println("Going to sleep");
+      Serial.printf("Going to sleep for %d seconds\n", mySleep/1000000);
       
-      uint64_t sleepTime = 10*1000000;
       gpio_deep_sleep_hold_en();
-      esp_sleep_enable_timer_wakeup(sleepTime);
+      esp_sleep_enable_timer_wakeup(mySleep);
       esp_deep_sleep_start();
 
       state = 0;
@@ -520,6 +528,7 @@ void setup()
   // Setup
   Serial.begin(115200);
   while (!Serial) {}
+  Serial.println("\n\n\n\n");
 
   wakeReady.put(false);
 
