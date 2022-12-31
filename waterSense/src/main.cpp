@@ -38,7 +38,7 @@
 #define CLOCK_PERIOD 10 ///< Clock task period in ms
 #define SLEEP_PERIOD 100 ///< Sleep task period in ms
 
-#define READ_TIME 60 ///< Length of time to measure in seconds
+#define READ_TIME 20 ///< Length of time to measure in seconds
 #define MINUTE_ALLIGN 2 ///< Allignment time in minutes
 
 RTC_DATA_ATTR uint32_t wakeCounter = 0; ///< A counter representing the number of wake cycles
@@ -301,8 +301,11 @@ void taskSD(void* params)
       // Get fix type
       uint8_t myFix = fixType.get();
 
+      String myTime = unixTime.get();
+
       // Write data to SD card
-      mySD.writeData(myFile, myDist, unixTime.get(), myTemp, myHum, myFix);
+      mySD.writeData(myFile, myDist, myTime, myTemp, myHum, myFix);
+      // myFile.printf("%s, %d, %f, %f, %d\n", unixTime.get(), myDist, myTemp, myHum, myFix);
 
       // Print data to serial monitor
       Serial.printf("%s, %d, %0.2f, %0.2f, %d\n", displayTime.get(), myDist, myTemp, myHum, myFix);
