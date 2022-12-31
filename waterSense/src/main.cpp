@@ -25,6 +25,7 @@
 #include "maxbotixSonar.h"
 #include "adafruitTempHumidity.h"
 #include "gpsClock.h"
+#include "sdData.h"
 #include "taskshare.h"
 
 
@@ -37,8 +38,10 @@
 #define CLOCK_PERIOD 10 ///< Clock task period in ms
 #define SLEEP_PERIOD 100 ///< Sleep task period in ms
 
-#define READ_TIME 20 ///< Length of time to measure in seconds
+#define READ_TIME 60 ///< Length of time to measure in seconds
 #define MINUTE_ALLIGN 2 ///< Allignment time in minutes
+
+RTC_DATA_ATTR uint32_t wakeCounter = 0; ///< A counter representing the number of wake cycles
 
 //-----------------------------------------------------------------------------------------------------||
 //-----------------------------------------------------------------------------------------------------||
@@ -116,6 +119,7 @@ Share<float> altitude("Altitude"); ///< The current altitude
 Share<uint8_t> fixType("Fix Type"); ///< The current fix type
 Share<String> unixTime("Unix Time"); ///< The current Unix timestamp relative to GMT
 Share<String> displayTime("Display Time"); ///< The current time of day relative to GMT
+Share<bool> wakeReady("Wake Ready"); ///< Indicates whether or not the device is ready to wake
 
 // Shares from sensors
 Share<int16_t> distance("Distance"); ///< The distance measured by the ultrasonic sensor in millimeters
@@ -141,6 +145,8 @@ Share<float> humidity("Humidity"); ///< The relative humidity in %
 MaxbotixSonar mySonar(&Serial1, SONAR_RX, SONAR_TX, SONAR_EN);
 AdafruitTempHumidity myTemp(TEMP_EN, TEMP_SENSOR_ADDRESS);
 GpsClock myGPS(&Serial2, GPS_RX, GPS_TX, GPS_EN);
+SD_Data mySD(GPIO_NUM_5);
+File myFile;
 
 //-----------------------------------------------------------------------------------------------------||
 //-----------------------------------------------------------------------------------------------------||
@@ -173,15 +179,18 @@ void taskMeasure(void* params)
     // Begin
     if (state == 0)
     {
-      // Setup sonar
-      mySonar.begin();
-      sonarSleepReady.put(false);
+      if (wakeReady.get())
+      {
+        // Setup sonar
+        mySonar.begin();
+        sonarSleepReady.put(false);
 
-      // Setup temp/humidity
-      myTemp.begin();
-      tempSleepReady.put(false);
+        // Setup temp/humidity
+        myTemp.begin();
+        tempSleepReady.put(false);
 
-      state = 1;
+        state = 1;
+      }
     }
 
     // Check for data
@@ -247,8 +256,18 @@ void taskSD(void* params)
     // Begin
     if (state == 0)
     {
-      // Check/create header files
-      state = 1;
+      if (wakeReady.get())
+      {
+        // Check/create header files
+        if ((wakeCounter % 1000) == 0)
+        {
+          mySD.writeHeader();
+        }
+
+        myFile = mySD.createFile(fixType.get(), wakeCounter, unixTime.get());
+
+        state = 1;
+      }
     }
 
     // Check for data
@@ -271,18 +290,32 @@ void taskSD(void* params)
     else if (state == 2)
     {
       // Get sonar data
-      // Get temp data
-      // Get humidity data
-      // Get timestamp 
-      Serial.printf("%s, %d, %0.2f, %0.2f\n", unixTime.get(), distance.get(), temperature.get(), humidity.get());
+      int16_t myDist = distance.get();
 
-      // Write all data to SD card
+      // Get temp data
+      float myTemp = temperature.get();
+
+      // Get humidity data
+      float myHum = humidity.get();
+
+      // Get fix type
+      uint8_t myFix = fixType.get();
+
+      // Write data to SD card
+      mySD.writeData(myFile, myDist, unixTime.get(), myTemp, myHum, myFix);
+
+      // Print data to serial monitor
+      Serial.printf("%s, %d, %0.2f, %0.2f, %d\n", displayTime.get(), myDist, myTemp, myHum, myFix);
+
       state = 1;
     }
+
     // Sleep
     else if (state == 3)
     {
       // Close data file
+      mySD.sleep(myFile);
+      sdSleepReady.put(true);
     }
 
     vTaskDelay(SD_PERIOD);
@@ -305,9 +338,17 @@ void taskClock(void* params)
     // Begin
     if (state == 0)
     {
-      // Any setup?
+      if ((wakeCounter % 1000) == 0)
+      {
+        wakeReady.put(false);
+        state = 4;
+      }
 
-      state = 1;
+      else
+      {
+        wakeReady.put(true);
+        state = 1;
+      }
     }
 
     // Read
@@ -338,8 +379,20 @@ void taskClock(void* params)
       longitude.put(myGPS.longitude);
       altitude.put(myGPS.altitude);
       fixType.put(myGPS.fixType);
-      unixTime.put(myGPS.getUnixTime(myClock));
-      displayTime.put(myGPS.getDisplayTime(myClock));
+
+      // If the GPS has a fix, use the clock to set the time
+      if (myGPS.fixType)
+      {
+        unixTime.put(myGPS.getUnixTime(myClock));
+        displayTime.put(myGPS.getDisplayTime(myClock));
+      }
+
+      // Otherwise show zero
+      else
+      {
+        unixTime.put(String(0));
+        displayTime.put("NaT");
+      }
       
       state = 1;
     }
@@ -350,6 +403,15 @@ void taskClock(void* params)
       // Disable sonar
       myGPS.sleep();
       clockSleepReady.put(true);
+    }
+
+    // Get fix
+    else if (state == 4)
+    {
+      wakeCounter = 0;
+      wakeReady.put(myGPS.getFix(myClock, 120));
+
+      state = 1;
     }
 
     vTaskDelay(CLOCK_PERIOD);
@@ -374,14 +436,22 @@ void taskSleep(void* params)
     // Begin
     if (state == 0)
     {
-      // Start run timer
-      runTimer = millis();
+      if (wakeReady.get())
+      {
+        // Start run timer
+        runTimer = millis();
 
-      // Make sure sleep flag is not set
-      sleepFlag.put(false);
+        // Increment wake counter
+        wakeCounter++;
 
-      Serial.println("Sleep state 0 -> 1");
-      state = 1;
+        // Make sure sleep flag is not set
+        sleepFlag.put(false);
+
+        Serial.printf("Wakeup number %d\n", wakeCounter);
+
+        Serial.println("Sleep state 0 -> 1");
+        state = 1;
+      }
     }
 
     // Wait
@@ -402,7 +472,7 @@ void taskSleep(void* params)
     else if (state == 2)
     {
       // If all tasks are ready to sleep, go to state 3
-      if (sonarSleepReady.get() && tempSleepReady.get() && clockSleepReady.get())
+      if (sonarSleepReady.get() && tempSleepReady.get() && clockSleepReady.get() && sdSleepReady.get())
       {
         Serial.println("Sleep state 2 -> 3");
         state = 3;
@@ -447,6 +517,8 @@ void setup()
   // Setup
   Serial.begin(115200);
   while (!Serial) {}
+
+  wakeReady.put(false);
 
   // Setup tasks
   xTaskCreate(taskMeasure, "Measurement Task", 8192, NULL, 3, NULL);

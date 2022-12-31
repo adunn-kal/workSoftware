@@ -32,7 +32,7 @@
 /* In non-continuous measurement mode measurements will be READ_TIME long and
  * centered on mulitples of MINUTE_ALLIGN value after the hour
  */
-#define READ_TIME 20 // Length of time to measure (in seconds)
+#define READ_TIME 60 // Length of time to measure (in seconds)
 #define MINUTE_ALLIGN 2 // Minutes
 
 /* In continuous measurement mode the device never goes to sleep,
