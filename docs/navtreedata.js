@@ -25,24 +25,6 @@
 var NAVTREE =
 [
   [ "WaterSense", "index.html", [
-    [ "adafruitTempHumidity", "md_water_sense_libraries_adafruit_temp_humidity__r_e_a_d_m_e.html", null ],
-    [ "gpsClock", "md_water_sense_libraries_gps_clock__r_e_a_d_m_e.html", null ],
-    [ "maxbotixSonar", "md_water_sense_libraries_maxbotix_sonar__r_e_a_d_m_e.html", null ],
-    [ "ME507 Class Support Programs", "md_water_sense_libraries__m_e507__support__r_e_a_d_m_e.html", [
-      [ "Documentation", "md_water_sense_libraries__m_e507__support__r_e_a_d_m_e.html#autotoc_md4", null ]
-    ] ],
-    [ "sdData", "md_water_sense_libraries_sd_data__r_e_a_d_m_e.html", null ],
-    [ "Classes", "annotated.html", [
-      [ "Class List", "annotated.html", "annotated_dup" ],
-      [ "Class Index", "classes.html", null ],
-      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
-      [ "Class Members", "functions.html", [
-        [ "All", "functions.html", null ],
-        [ "Functions", "functions_func.html", null ],
-        [ "Variables", "functions_vars.html", null ],
-        [ "Related Functions", "functions_rela.html", null ]
-      ] ]
-    ] ],
     [ "Files", "files.html", [
       [ "File List", "files.html", "files_dup" ],
       [ "File Members", "globals.html", [
@@ -57,7 +39,7 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"adafruit_temp_humidity_8cpp.html"
+"dir_10531bf2bfed4ad7d70bb1172b4d82aa.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

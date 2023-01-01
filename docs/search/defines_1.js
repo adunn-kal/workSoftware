@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['debug_5fprint_5foff_0',['DEBUG_PRINT_OFF',['../devnull_8h.html#a72f843cde7b80d04f2eb5f8170efe333',1,'devnull.h']]]
+  ['fix_5fdelay_0',['FIX_DELAY',['../main_8cpp.html#a3afd9f7fa30603c0d00ac42c85661f65',1,'main.cpp']]]
 ];

@@ -66,7 +66,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(document).ready(function(){initNavTree('work_software_2water_sense_2src_2main_8cpp.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('main_8cpp.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -106,11 +106,11 @@ $(document).ready(function(){initNavTree('work_software_2water_sense_2src_2main_
 <code>#include &quot;UnixTime.h&quot;</code><br />
 <code>#include &lt;esp_now.h&gt;</code><br />
 <code>#include &lt;WiFi.h&gt;</code><br />
-<code>#include &quot;<a class="el" href="maxbotix_sonar_8h_source.html">maxbotixSonar.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="adafruit_temp_humidity_8h_source.html">adafruitTempHumidity.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="gps_clock_8h_source.html">gpsClock.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="sd_data_8h_source.html">sdData.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="taskshare_8h_source.html">taskshare.h</a>&quot;</code><br />
+<code>#include &quot;maxbotixSonar.h&quot;</code><br />
+<code>#include &quot;adafruitTempHumidity.h&quot;</code><br />
+<code>#include &quot;gpsClock.h&quot;</code><br />
+<code>#include &quot;sdData.h&quot;</code><br />
+<code>#include &quot;taskshare.h&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
@@ -134,8 +134,8 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>READ_TIME</b>&#160;&#160;&#160;20</td></tr>
 <tr class="memdesc:a8bdeb912dbf8503176e6c6e43a1d9731"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of time to measure in seconds. <br /></td></tr>
 <tr class="separator:a8bdeb912dbf8503176e6c6e43a1d9731"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a166ed06385da9f0bec567a6ffce7431c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="work_software_2water_sense_2src_2main_8cpp.html#a166ed06385da9f0bec567a6ffce7431c">MINUTE_ALLIGN</a>&#160;&#160;&#160;2</td></tr>
-<tr class="memdesc:a166ed06385da9f0bec567a6ffce7431c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The minute allignment to center measurements about.  <a href="work_software_2water_sense_2src_2main_8cpp.html#a166ed06385da9f0bec567a6ffce7431c">More...</a><br /></td></tr>
+<tr class="memitem:a166ed06385da9f0bec567a6ffce7431c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a166ed06385da9f0bec567a6ffce7431c">MINUTE_ALLIGN</a>&#160;&#160;&#160;2</td></tr>
+<tr class="memdesc:a166ed06385da9f0bec567a6ffce7431c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The minute allignment to center measurements about.  <a href="main_8cpp.html#a166ed06385da9f0bec567a6ffce7431c">More...</a><br /></td></tr>
 <tr class="separator:a166ed06385da9f0bec567a6ffce7431c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3afd9f7fa30603c0d00ac42c85661f65"><td class="memItemLeft" align="right" valign="top"><a id="a3afd9f7fa30603c0d00ac42c85661f65" name="a3afd9f7fa30603c0d00ac42c85661f65"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>FIX_DELAY</b>&#160;&#160;&#160;120</td></tr>
@@ -153,8 +153,8 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>SONAR_TX</b>&#160;&#160;&#160;GPIO_NUM_32</td></tr>
 <tr class="memdesc:a1dc9b8e6f2d757d4271fdcf48504eed3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sonar sensor transmit pin. <br /></td></tr>
 <tr class="separator:a1dc9b8e6f2d757d4271fdcf48504eed3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac9932610a2dd5abe386768a8df572619"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="work_software_2water_sense_2src_2main_8cpp.html#ac9932610a2dd5abe386768a8df572619">SONAR_EN</a>&#160;&#160;&#160;GPIO_NUM_33</td></tr>
-<tr class="memdesc:ac9932610a2dd5abe386768a8df572619"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sonar sensor enable pin.  <a href="work_software_2water_sense_2src_2main_8cpp.html#ac9932610a2dd5abe386768a8df572619">More...</a><br /></td></tr>
+<tr class="memitem:ac9932610a2dd5abe386768a8df572619"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#ac9932610a2dd5abe386768a8df572619">SONAR_EN</a>&#160;&#160;&#160;GPIO_NUM_33</td></tr>
+<tr class="memdesc:ac9932610a2dd5abe386768a8df572619"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sonar sensor enable pin.  <a href="main_8cpp.html#ac9932610a2dd5abe386768a8df572619">More...</a><br /></td></tr>
 <tr class="separator:ac9932610a2dd5abe386768a8df572619"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8cd04b3645e97569755976b99fe190b8"><td class="memItemLeft" align="right" valign="top"><a id="a8cd04b3645e97569755976b99fe190b8" name="a8cd04b3645e97569755976b99fe190b8"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>GPS_RX</b>&#160;&#160;&#160;GPIO_NUM_16</td></tr>
@@ -164,30 +164,104 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>GPS_TX</b>&#160;&#160;&#160;GPIO_NUM_17</td></tr>
 <tr class="memdesc:a05b958741e002c6dd8f8af174726665e"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS transmit pin. <br /></td></tr>
 <tr class="separator:a05b958741e002c6dd8f8af174726665e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55ae23fa00da37869b8437650b112ba7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="work_software_2water_sense_2src_2main_8cpp.html#a55ae23fa00da37869b8437650b112ba7">GPS_EN</a>&#160;&#160;&#160;GPIO_NUM_27</td></tr>
-<tr class="memdesc:a55ae23fa00da37869b8437650b112ba7"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS enable pin.  <a href="work_software_2water_sense_2src_2main_8cpp.html#a55ae23fa00da37869b8437650b112ba7">More...</a><br /></td></tr>
+<tr class="memitem:a55ae23fa00da37869b8437650b112ba7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a55ae23fa00da37869b8437650b112ba7">GPS_EN</a>&#160;&#160;&#160;GPIO_NUM_27</td></tr>
+<tr class="memdesc:a55ae23fa00da37869b8437650b112ba7"><td class="mdescLeft">&#160;</td><td class="mdescRight">GPS enable pin.  <a href="main_8cpp.html#a55ae23fa00da37869b8437650b112ba7">More...</a><br /></td></tr>
 <tr class="separator:a55ae23fa00da37869b8437650b112ba7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a867b9c8b8f99915de8846a39099feb3c"><td class="memItemLeft" align="right" valign="top"><a id="a867b9c8b8f99915de8846a39099feb3c" name="a867b9c8b8f99915de8846a39099feb3c"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>TEMP_SENSOR_ADDRESS</b>&#160;&#160;&#160;0x44</td></tr>
 <tr class="memdesc:a867b9c8b8f99915de8846a39099feb3c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Temperature and humidity sensor hex address. <br /></td></tr>
 <tr class="separator:a867b9c8b8f99915de8846a39099feb3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab65710fd84d2ec1c6fbc8640a211798f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="work_software_2water_sense_2src_2main_8cpp.html#ab65710fd84d2ec1c6fbc8640a211798f">TEMP_EN</a>&#160;&#160;&#160;GPIO_NUM_15</td></tr>
-<tr class="memdesc:ab65710fd84d2ec1c6fbc8640a211798f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Temperature/humidity sensor enable pin.  <a href="work_software_2water_sense_2src_2main_8cpp.html#ab65710fd84d2ec1c6fbc8640a211798f">More...</a><br /></td></tr>
+<tr class="memitem:ab65710fd84d2ec1c6fbc8640a211798f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#ab65710fd84d2ec1c6fbc8640a211798f">TEMP_EN</a>&#160;&#160;&#160;GPIO_NUM_15</td></tr>
+<tr class="memdesc:ab65710fd84d2ec1c6fbc8640a211798f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Temperature/humidity sensor enable pin.  <a href="main_8cpp.html#ab65710fd84d2ec1c6fbc8640a211798f">More...</a><br /></td></tr>
 <tr class="separator:ab65710fd84d2ec1c6fbc8640a211798f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a76131e011d13557f2e630ac82fbbb425"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="work_software_2water_sense_2src_2main_8cpp.html#a76131e011d13557f2e630ac82fbbb425">taskMeasure</a> (void *params)</td></tr>
-<tr class="memdesc:a76131e011d13557f2e630ac82fbbb425"><td class="mdescLeft">&#160;</td><td class="mdescRight">The measurement task.  <a href="work_software_2water_sense_2src_2main_8cpp.html#a76131e011d13557f2e630ac82fbbb425">More...</a><br /></td></tr>
+<tr class="memitem:a0b97c037dae1f1044930eb4ccc86e460"><td class="memItemLeft" align="right" valign="top"><a id="a0b97c037dae1f1044930eb4ccc86e460" name="a0b97c037dae1f1044930eb4ccc86e460"></a>
+Share&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>dataReady</b> (&quot;Data Ready&quot;)</td></tr>
+<tr class="memdesc:a0b97c037dae1f1044930eb4ccc86e460"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to indicate availability of new ultrasonic measurements. <br /></td></tr>
+<tr class="separator:a0b97c037dae1f1044930eb4ccc86e460"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d29d65fcba65974f5b9b90990daae6c"><td class="memItemLeft" align="right" valign="top"><a id="a2d29d65fcba65974f5b9b90990daae6c" name="a2d29d65fcba65974f5b9b90990daae6c"></a>
+Share&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>sleepFlag</b> (&quot;Sleep Flag&quot;)</td></tr>
+<tr class="memdesc:a2d29d65fcba65974f5b9b90990daae6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to trigger sleep operations. <br /></td></tr>
+<tr class="separator:a2d29d65fcba65974f5b9b90990daae6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa72c2eae52e40d94e13e0148122673d9"><td class="memItemLeft" align="right" valign="top"><a id="aa72c2eae52e40d94e13e0148122673d9" name="aa72c2eae52e40d94e13e0148122673d9"></a>
+Share&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>clockSleepReady</b> (&quot;Clock Sleep Ready&quot;)</td></tr>
+<tr class="memdesc:aa72c2eae52e40d94e13e0148122673d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to indicate the clock is ready to sleep. <br /></td></tr>
+<tr class="separator:aa72c2eae52e40d94e13e0148122673d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc4441b239b0fddc5d195a36bc932123"><td class="memItemLeft" align="right" valign="top"><a id="abc4441b239b0fddc5d195a36bc932123" name="abc4441b239b0fddc5d195a36bc932123"></a>
+Share&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>sonarSleepReady</b> (&quot;Sonar Sleep Ready&quot;)</td></tr>
+<tr class="memdesc:abc4441b239b0fddc5d195a36bc932123"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to indicate the sonar sensor is ready to sleep. <br /></td></tr>
+<tr class="separator:abc4441b239b0fddc5d195a36bc932123"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa461e2ced416f4051e1d7c120b1c9531"><td class="memItemLeft" align="right" valign="top"><a id="aa461e2ced416f4051e1d7c120b1c9531" name="aa461e2ced416f4051e1d7c120b1c9531"></a>
+Share&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tempSleepReady</b> (&quot;Temp Sleep Ready&quot;)</td></tr>
+<tr class="memdesc:aa461e2ced416f4051e1d7c120b1c9531"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to indicate the temp sensor is ready to sleep. <br /></td></tr>
+<tr class="separator:aa461e2ced416f4051e1d7c120b1c9531"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a127ffc0368b7c8c7eb1e318bf997891c"><td class="memItemLeft" align="right" valign="top"><a id="a127ffc0368b7c8c7eb1e318bf997891c" name="a127ffc0368b7c8c7eb1e318bf997891c"></a>
+Share&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>sdSleepReady</b> (&quot;SD Sleep Ready&quot;)</td></tr>
+<tr class="memdesc:a127ffc0368b7c8c7eb1e318bf997891c"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to indicate the SD card is ready to sleep. <br /></td></tr>
+<tr class="separator:a127ffc0368b7c8c7eb1e318bf997891c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab00f7636e6066740ee5f5733d2c999ad"><td class="memItemLeft" align="right" valign="top"><a id="ab00f7636e6066740ee5f5733d2c999ad" name="ab00f7636e6066740ee5f5733d2c999ad"></a>
+Share&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>latitude</b> (&quot;Latitude&quot;)</td></tr>
+<tr class="memdesc:ab00f7636e6066740ee5f5733d2c999ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current latitude. <br /></td></tr>
+<tr class="separator:ab00f7636e6066740ee5f5733d2c999ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22ff2a9716e0cee75ff8818a6404ac71"><td class="memItemLeft" align="right" valign="top"><a id="a22ff2a9716e0cee75ff8818a6404ac71" name="a22ff2a9716e0cee75ff8818a6404ac71"></a>
+Share&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>longitude</b> (&quot;Longitude&quot;)</td></tr>
+<tr class="memdesc:a22ff2a9716e0cee75ff8818a6404ac71"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current longitude. <br /></td></tr>
+<tr class="separator:a22ff2a9716e0cee75ff8818a6404ac71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acce31e86c533e83d8afda34b2e7133c9"><td class="memItemLeft" align="right" valign="top"><a id="acce31e86c533e83d8afda34b2e7133c9" name="acce31e86c533e83d8afda34b2e7133c9"></a>
+Share&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>altitude</b> (&quot;Altitude&quot;)</td></tr>
+<tr class="memdesc:acce31e86c533e83d8afda34b2e7133c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current altitude. <br /></td></tr>
+<tr class="separator:acce31e86c533e83d8afda34b2e7133c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a128bbededb691e4b642b150ff91c60ef"><td class="memItemLeft" align="right" valign="top"><a id="a128bbededb691e4b642b150ff91c60ef" name="a128bbededb691e4b642b150ff91c60ef"></a>
+Share&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>fixType</b> (&quot;Fix Type&quot;)</td></tr>
+<tr class="memdesc:a128bbededb691e4b642b150ff91c60ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current fix type. <br /></td></tr>
+<tr class="separator:a128bbededb691e4b642b150ff91c60ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa11276a1a893ca1da93d4e5d2856b716"><td class="memItemLeft" align="right" valign="top"><a id="aa11276a1a893ca1da93d4e5d2856b716" name="aa11276a1a893ca1da93d4e5d2856b716"></a>
+Share&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>unixTime</b> (&quot;Unix Time&quot;)</td></tr>
+<tr class="memdesc:aa11276a1a893ca1da93d4e5d2856b716"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current Unix timestamp relative to GMT. <br /></td></tr>
+<tr class="separator:aa11276a1a893ca1da93d4e5d2856b716"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a457dbfe8f1ca1826a398165f6bcc9784"><td class="memItemLeft" align="right" valign="top"><a id="a457dbfe8f1ca1826a398165f6bcc9784" name="a457dbfe8f1ca1826a398165f6bcc9784"></a>
+Share&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>displayTime</b> (&quot;Display Time&quot;)</td></tr>
+<tr class="memdesc:a457dbfe8f1ca1826a398165f6bcc9784"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current time of day relative to GMT. <br /></td></tr>
+<tr class="separator:a457dbfe8f1ca1826a398165f6bcc9784"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb7316d5d096e2b5224142a879e517d4"><td class="memItemLeft" align="right" valign="top"><a id="afb7316d5d096e2b5224142a879e517d4" name="afb7316d5d096e2b5224142a879e517d4"></a>
+Share&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>wakeReady</b> (&quot;Wake Ready&quot;)</td></tr>
+<tr class="memdesc:afb7316d5d096e2b5224142a879e517d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicates whether or not the device is ready to wake. <br /></td></tr>
+<tr class="separator:afb7316d5d096e2b5224142a879e517d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add04c9f0be85650ec4503561e2d13131"><td class="memItemLeft" align="right" valign="top"><a id="add04c9f0be85650ec4503561e2d13131" name="add04c9f0be85650ec4503561e2d13131"></a>
+Share&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>sleepTime</b> (&quot;Sleep Time&quot;)</td></tr>
+<tr class="memdesc:add04c9f0be85650ec4503561e2d13131"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of microseconds to sleep. <br /></td></tr>
+<tr class="separator:add04c9f0be85650ec4503561e2d13131"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a302a49918b0760378c455bafeb9d13e2"><td class="memItemLeft" align="right" valign="top"><a id="a302a49918b0760378c455bafeb9d13e2" name="a302a49918b0760378c455bafeb9d13e2"></a>
+Share&lt; int16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>distance</b> (&quot;Distance&quot;)</td></tr>
+<tr class="memdesc:a302a49918b0760378c455bafeb9d13e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">The distance measured by the ultrasonic sensor in millimeters. <br /></td></tr>
+<tr class="separator:a302a49918b0760378c455bafeb9d13e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4841c2b9d8e92a3ae74429d1d4f23367"><td class="memItemLeft" align="right" valign="top"><a id="a4841c2b9d8e92a3ae74429d1d4f23367" name="a4841c2b9d8e92a3ae74429d1d4f23367"></a>
+Share&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>temperature</b> (&quot;Temperature&quot;)</td></tr>
+<tr class="memdesc:a4841c2b9d8e92a3ae74429d1d4f23367"><td class="mdescLeft">&#160;</td><td class="mdescRight">The temperature in Fahrenheit. <br /></td></tr>
+<tr class="separator:a4841c2b9d8e92a3ae74429d1d4f23367"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6ca1b8c5f737d157399f325a1876f16"><td class="memItemLeft" align="right" valign="top"><a id="ab6ca1b8c5f737d157399f325a1876f16" name="ab6ca1b8c5f737d157399f325a1876f16"></a>
+Share&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>humidity</b> (&quot;Humidity&quot;)</td></tr>
+<tr class="memdesc:ab6ca1b8c5f737d157399f325a1876f16"><td class="mdescLeft">&#160;</td><td class="mdescRight">The relative humidity in %. <br /></td></tr>
+<tr class="separator:ab6ca1b8c5f737d157399f325a1876f16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ade5b03b8620c46985fc084882a982d07"><td class="memItemLeft" align="right" valign="top"><a id="ade5b03b8620c46985fc084882a982d07" name="ade5b03b8620c46985fc084882a982d07"></a>
+AdafruitTempHumidity&#160;</td><td class="memItemRight" valign="bottom"><b>myTemp</b> (<a class="el" href="main_8cpp.html#ab65710fd84d2ec1c6fbc8640a211798f">TEMP_EN</a>, <a class="el" href="main_8cpp.html#a867b9c8b8f99915de8846a39099feb3c">TEMP_SENSOR_ADDRESS</a>)</td></tr>
+<tr class="separator:ade5b03b8620c46985fc084882a982d07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aedf2df3ecdf6da03307be21b1af051a8"><td class="memItemLeft" align="right" valign="top"><a id="aedf2df3ecdf6da03307be21b1af051a8" name="aedf2df3ecdf6da03307be21b1af051a8"></a>
+SD_Data&#160;</td><td class="memItemRight" valign="bottom"><b>mySD</b> (GPIO_NUM_5)</td></tr>
+<tr class="separator:aedf2df3ecdf6da03307be21b1af051a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76131e011d13557f2e630ac82fbbb425"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a76131e011d13557f2e630ac82fbbb425">taskMeasure</a> (void *params)</td></tr>
+<tr class="memdesc:a76131e011d13557f2e630ac82fbbb425"><td class="mdescLeft">&#160;</td><td class="mdescRight">The measurement task.  <a href="main_8cpp.html#a76131e011d13557f2e630ac82fbbb425">More...</a><br /></td></tr>
 <tr class="separator:a76131e011d13557f2e630ac82fbbb425"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae43cfb8c580804aad9f59f4d8f7e847f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="work_software_2water_sense_2src_2main_8cpp.html#ae43cfb8c580804aad9f59f4d8f7e847f">taskSD</a> (void *params)</td></tr>
-<tr class="memdesc:ae43cfb8c580804aad9f59f4d8f7e847f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The SD storage task.  <a href="work_software_2water_sense_2src_2main_8cpp.html#ae43cfb8c580804aad9f59f4d8f7e847f">More...</a><br /></td></tr>
+<tr class="memitem:ae43cfb8c580804aad9f59f4d8f7e847f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#ae43cfb8c580804aad9f59f4d8f7e847f">taskSD</a> (void *params)</td></tr>
+<tr class="memdesc:ae43cfb8c580804aad9f59f4d8f7e847f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The SD storage task.  <a href="main_8cpp.html#ae43cfb8c580804aad9f59f4d8f7e847f">More...</a><br /></td></tr>
 <tr class="separator:ae43cfb8c580804aad9f59f4d8f7e847f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ad58f88372a9a3fc4b2aced7d09bb58"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="work_software_2water_sense_2src_2main_8cpp.html#a5ad58f88372a9a3fc4b2aced7d09bb58">taskClock</a> (void *params)</td></tr>
-<tr class="memdesc:a5ad58f88372a9a3fc4b2aced7d09bb58"><td class="mdescLeft">&#160;</td><td class="mdescRight">The clock task.  <a href="work_software_2water_sense_2src_2main_8cpp.html#a5ad58f88372a9a3fc4b2aced7d09bb58">More...</a><br /></td></tr>
+<tr class="memitem:a5ad58f88372a9a3fc4b2aced7d09bb58"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a5ad58f88372a9a3fc4b2aced7d09bb58">taskClock</a> (void *params)</td></tr>
+<tr class="memdesc:a5ad58f88372a9a3fc4b2aced7d09bb58"><td class="mdescLeft">&#160;</td><td class="mdescRight">The clock task.  <a href="main_8cpp.html#a5ad58f88372a9a3fc4b2aced7d09bb58">More...</a><br /></td></tr>
 <tr class="separator:a5ad58f88372a9a3fc4b2aced7d09bb58"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a478f76d1e9ee833a1fc133ccec2abf79"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="work_software_2water_sense_2src_2main_8cpp.html#a478f76d1e9ee833a1fc133ccec2abf79">taskSleep</a> (void *params)</td></tr>
-<tr class="memdesc:a478f76d1e9ee833a1fc133ccec2abf79"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sleep task.  <a href="work_software_2water_sense_2src_2main_8cpp.html#a478f76d1e9ee833a1fc133ccec2abf79">More...</a><br /></td></tr>
+<tr class="memitem:a478f76d1e9ee833a1fc133ccec2abf79"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a478f76d1e9ee833a1fc133ccec2abf79">taskSleep</a> (void *params)</td></tr>
+<tr class="memdesc:a478f76d1e9ee833a1fc133ccec2abf79"><td class="mdescLeft">&#160;</td><td class="mdescRight">The sleep task.  <a href="main_8cpp.html#a478f76d1e9ee833a1fc133ccec2abf79">More...</a><br /></td></tr>
 <tr class="separator:a478f76d1e9ee833a1fc133ccec2abf79"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4fc01d736fe50cf5b977f755b675f11d"><td class="memItemLeft" align="right" valign="top"><a id="a4fc01d736fe50cf5b977f755b675f11d" name="a4fc01d736fe50cf5b977f755b675f11d"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setup</b> ()</td></tr>
@@ -202,86 +276,12 @@ Variables</h2></td></tr>
 RTC_DATA_ATTR uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>wakeCounter</b> = 0</td></tr>
 <tr class="memdesc:af2296f2e243be9a63b2e7709306bd802"><td class="mdescLeft">&#160;</td><td class="mdescRight">A counter representing the number of wake cycles. <br /></td></tr>
 <tr class="separator:af2296f2e243be9a63b2e7709306bd802"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35314e93e796825748d12f7d64e5801b"><td class="memItemLeft" align="right" valign="top"><a id="a35314e93e796825748d12f7d64e5801b" name="a35314e93e796825748d12f7d64e5801b"></a>
-<a class="el" href="class_share.html">Share</a>&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>dataReady</b> (&quot;Data Ready&quot;)</td></tr>
-<tr class="memdesc:a35314e93e796825748d12f7d64e5801b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to indicate availability of new ultrasonic measurements. <br /></td></tr>
-<tr class="separator:a35314e93e796825748d12f7d64e5801b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a0088584c21931381993c26940c31e9"><td class="memItemLeft" align="right" valign="top"><a id="a9a0088584c21931381993c26940c31e9" name="a9a0088584c21931381993c26940c31e9"></a>
-<a class="el" href="class_share.html">Share</a>&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>sleepFlag</b> (&quot;Sleep Flag&quot;)</td></tr>
-<tr class="memdesc:a9a0088584c21931381993c26940c31e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to trigger sleep operations. <br /></td></tr>
-<tr class="separator:a9a0088584c21931381993c26940c31e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab505b77af156c57d59155089934b0574"><td class="memItemLeft" align="right" valign="top"><a id="ab505b77af156c57d59155089934b0574" name="ab505b77af156c57d59155089934b0574"></a>
-<a class="el" href="class_share.html">Share</a>&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>clockSleepReady</b> (&quot;Clock Sleep Ready&quot;)</td></tr>
-<tr class="memdesc:ab505b77af156c57d59155089934b0574"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to indicate the clock is ready to sleep. <br /></td></tr>
-<tr class="separator:ab505b77af156c57d59155089934b0574"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d54b5c8cda6ea972c6386e0c231b0fb"><td class="memItemLeft" align="right" valign="top"><a id="a1d54b5c8cda6ea972c6386e0c231b0fb" name="a1d54b5c8cda6ea972c6386e0c231b0fb"></a>
-<a class="el" href="class_share.html">Share</a>&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>sonarSleepReady</b> (&quot;Sonar Sleep Ready&quot;)</td></tr>
-<tr class="memdesc:a1d54b5c8cda6ea972c6386e0c231b0fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to indicate the sonar sensor is ready to sleep. <br /></td></tr>
-<tr class="separator:a1d54b5c8cda6ea972c6386e0c231b0fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8effab9d46d618c5288ce42bb8f2458b"><td class="memItemLeft" align="right" valign="top"><a id="a8effab9d46d618c5288ce42bb8f2458b" name="a8effab9d46d618c5288ce42bb8f2458b"></a>
-<a class="el" href="class_share.html">Share</a>&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>tempSleepReady</b> (&quot;Temp Sleep Ready&quot;)</td></tr>
-<tr class="memdesc:a8effab9d46d618c5288ce42bb8f2458b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to indicate the temp sensor is ready to sleep. <br /></td></tr>
-<tr class="separator:a8effab9d46d618c5288ce42bb8f2458b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5bf29fd43eb744c3a8ab264bedde9438"><td class="memItemLeft" align="right" valign="top"><a id="a5bf29fd43eb744c3a8ab264bedde9438" name="a5bf29fd43eb744c3a8ab264bedde9438"></a>
-<a class="el" href="class_share.html">Share</a>&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>sdSleepReady</b> (&quot;SD Sleep Ready&quot;)</td></tr>
-<tr class="memdesc:a5bf29fd43eb744c3a8ab264bedde9438"><td class="mdescLeft">&#160;</td><td class="mdescRight">A shared variable to indicate the SD card is ready to sleep. <br /></td></tr>
-<tr class="separator:a5bf29fd43eb744c3a8ab264bedde9438"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2911f20508642d61e5531d98e7c0d539"><td class="memItemLeft" align="right" valign="top"><a id="a2911f20508642d61e5531d98e7c0d539" name="a2911f20508642d61e5531d98e7c0d539"></a>
-<a class="el" href="class_share.html">Share</a>&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>latitude</b> (&quot;Latitude&quot;)</td></tr>
-<tr class="memdesc:a2911f20508642d61e5531d98e7c0d539"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current latitude. <br /></td></tr>
-<tr class="separator:a2911f20508642d61e5531d98e7c0d539"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6308c32df5326731826323752ea5517f"><td class="memItemLeft" align="right" valign="top"><a id="a6308c32df5326731826323752ea5517f" name="a6308c32df5326731826323752ea5517f"></a>
-<a class="el" href="class_share.html">Share</a>&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>longitude</b> (&quot;Longitude&quot;)</td></tr>
-<tr class="memdesc:a6308c32df5326731826323752ea5517f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current longitude. <br /></td></tr>
-<tr class="separator:a6308c32df5326731826323752ea5517f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aae2d18221f0afbf25cb6a5a3dd743c60"><td class="memItemLeft" align="right" valign="top"><a id="aae2d18221f0afbf25cb6a5a3dd743c60" name="aae2d18221f0afbf25cb6a5a3dd743c60"></a>
-<a class="el" href="class_share.html">Share</a>&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>altitude</b> (&quot;Altitude&quot;)</td></tr>
-<tr class="memdesc:aae2d18221f0afbf25cb6a5a3dd743c60"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current altitude. <br /></td></tr>
-<tr class="separator:aae2d18221f0afbf25cb6a5a3dd743c60"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a20b0aee3fae3afea32b1018a622a62ec"><td class="memItemLeft" align="right" valign="top"><a id="a20b0aee3fae3afea32b1018a622a62ec" name="a20b0aee3fae3afea32b1018a622a62ec"></a>
-<a class="el" href="class_share.html">Share</a>&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>fixType</b> (&quot;Fix Type&quot;)</td></tr>
-<tr class="memdesc:a20b0aee3fae3afea32b1018a622a62ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current fix type. <br /></td></tr>
-<tr class="separator:a20b0aee3fae3afea32b1018a622a62ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2785c94aaed7ec20c2b903a8f3838876"><td class="memItemLeft" align="right" valign="top"><a id="a2785c94aaed7ec20c2b903a8f3838876" name="a2785c94aaed7ec20c2b903a8f3838876"></a>
-<a class="el" href="class_share.html">Share</a>&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>unixTime</b> (&quot;Unix Time&quot;)</td></tr>
-<tr class="memdesc:a2785c94aaed7ec20c2b903a8f3838876"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current Unix timestamp relative to GMT. <br /></td></tr>
-<tr class="separator:a2785c94aaed7ec20c2b903a8f3838876"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4083275c7dcd3eb54b88ce3c4cc346c7"><td class="memItemLeft" align="right" valign="top"><a id="a4083275c7dcd3eb54b88ce3c4cc346c7" name="a4083275c7dcd3eb54b88ce3c4cc346c7"></a>
-<a class="el" href="class_share.html">Share</a>&lt; String &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>displayTime</b> (&quot;Display Time&quot;)</td></tr>
-<tr class="memdesc:a4083275c7dcd3eb54b88ce3c4cc346c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The current time of day relative to GMT. <br /></td></tr>
-<tr class="separator:a4083275c7dcd3eb54b88ce3c4cc346c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a719537883e8ea9d1a30fe3ca8be06ec4"><td class="memItemLeft" align="right" valign="top"><a id="a719537883e8ea9d1a30fe3ca8be06ec4" name="a719537883e8ea9d1a30fe3ca8be06ec4"></a>
-<a class="el" href="class_share.html">Share</a>&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>wakeReady</b> (&quot;Wake Ready&quot;)</td></tr>
-<tr class="memdesc:a719537883e8ea9d1a30fe3ca8be06ec4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicates whether or not the device is ready to wake. <br /></td></tr>
-<tr class="separator:a719537883e8ea9d1a30fe3ca8be06ec4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a0fb35a4d6dbb6d3ed9587919dd1e1c"><td class="memItemLeft" align="right" valign="top"><a id="a8a0fb35a4d6dbb6d3ed9587919dd1e1c" name="a8a0fb35a4d6dbb6d3ed9587919dd1e1c"></a>
-<a class="el" href="class_share.html">Share</a>&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>sleepTime</b> (&quot;Sleep Time&quot;)</td></tr>
-<tr class="memdesc:a8a0fb35a4d6dbb6d3ed9587919dd1e1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The number of microseconds to sleep. <br /></td></tr>
-<tr class="separator:a8a0fb35a4d6dbb6d3ed9587919dd1e1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32fcd993907942ea89f8876c618c903f"><td class="memItemLeft" align="right" valign="top"><a id="a32fcd993907942ea89f8876c618c903f" name="a32fcd993907942ea89f8876c618c903f"></a>
-<a class="el" href="class_share.html">Share</a>&lt; int16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>distance</b> (&quot;Distance&quot;)</td></tr>
-<tr class="memdesc:a32fcd993907942ea89f8876c618c903f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The distance measured by the ultrasonic sensor in millimeters. <br /></td></tr>
-<tr class="separator:a32fcd993907942ea89f8876c618c903f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a461ae938df5021dfa0bb52f53eb3c1ad"><td class="memItemLeft" align="right" valign="top"><a id="a461ae938df5021dfa0bb52f53eb3c1ad" name="a461ae938df5021dfa0bb52f53eb3c1ad"></a>
-<a class="el" href="class_share.html">Share</a>&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>temperature</b> (&quot;Temperature&quot;)</td></tr>
-<tr class="memdesc:a461ae938df5021dfa0bb52f53eb3c1ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">The temperature in Fahrenheit. <br /></td></tr>
-<tr class="separator:a461ae938df5021dfa0bb52f53eb3c1ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2895faa0996a3b122ae3a7b73f30cd11"><td class="memItemLeft" align="right" valign="top"><a id="a2895faa0996a3b122ae3a7b73f30cd11" name="a2895faa0996a3b122ae3a7b73f30cd11"></a>
-<a class="el" href="class_share.html">Share</a>&lt; float &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>humidity</b> (&quot;Humidity&quot;)</td></tr>
-<tr class="memdesc:a2895faa0996a3b122ae3a7b73f30cd11"><td class="mdescLeft">&#160;</td><td class="mdescRight">The relative humidity in %. <br /></td></tr>
-<tr class="separator:a2895faa0996a3b122ae3a7b73f30cd11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeba126766722a62f6d5fea9e29d35c4b"><td class="memItemLeft" align="right" valign="top"><a id="aeba126766722a62f6d5fea9e29d35c4b" name="aeba126766722a62f6d5fea9e29d35c4b"></a>
-<a class="el" href="class_maxbotix_sonar.html">MaxbotixSonar</a> mySonar &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>Serial1</b></td></tr>
+MaxbotixSonar mySonar &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>Serial1</b></td></tr>
 <tr class="separator:aeba126766722a62f6d5fea9e29d35c4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2bc2bc736b74951dcf3152d96060903c"><td class="memItemLeft" align="right" valign="top"><a id="a2bc2bc736b74951dcf3152d96060903c" name="a2bc2bc736b74951dcf3152d96060903c"></a>
-<a class="el" href="class_adafruit_temp_humidity.html">AdafruitTempHumidity</a>&#160;</td><td class="memItemRight" valign="bottom"><b>myTemp</b> (<a class="el" href="work_software_2water_sense_2src_2main_8cpp.html#ab65710fd84d2ec1c6fbc8640a211798f">TEMP_EN</a>, <a class="el" href="work_software_2water_sense_2src_2main_8cpp.html#a867b9c8b8f99915de8846a39099feb3c">TEMP_SENSOR_ADDRESS</a>)</td></tr>
-<tr class="separator:a2bc2bc736b74951dcf3152d96060903c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40686cd3e3d0a55a7fcdac3289f1cf10"><td class="memItemLeft" align="right" valign="top"><a id="a40686cd3e3d0a55a7fcdac3289f1cf10" name="a40686cd3e3d0a55a7fcdac3289f1cf10"></a>
-<a class="el" href="class_gps_clock.html">GpsClock</a> myGPS &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>Serial2</b></td></tr>
+GpsClock myGPS &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>Serial2</b></td></tr>
 <tr class="separator:a40686cd3e3d0a55a7fcdac3289f1cf10"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae891d328788aaca8fb9fa6ad82c69a3f"><td class="memItemLeft" align="right" valign="top"><a id="ae891d328788aaca8fb9fa6ad82c69a3f" name="ae891d328788aaca8fb9fa6ad82c69a3f"></a>
-<a class="el" href="class_s_d___data.html">SD_Data</a>&#160;</td><td class="memItemRight" valign="bottom"><b>mySD</b> (GPIO_NUM_5)</td></tr>
-<tr class="separator:ae891d328788aaca8fb9fa6ad82c69a3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8eb13a6b9ea8026221cb3a45a822526a"><td class="memItemLeft" align="right" valign="top"><a id="a8eb13a6b9ea8026221cb3a45a822526a" name="a8eb13a6b9ea8026221cb3a45a822526a"></a>
 File&#160;</td><td class="memItemRight" valign="bottom"><b>myFile</b></td></tr>
 <tr class="separator:a8eb13a6b9ea8026221cb3a45a822526a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -475,7 +475,7 @@ File&#160;</td><td class="memItemRight" valign="bottom"><b>myFile</b></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_b363c367f15b22a3714f5a2d42078d41.html">workSoftware</a></li><li class="navelem"><a class="el" href="dir_10531bf2bfed4ad7d70bb1172b4d82aa.html">waterSense</a></li><li class="navelem"><a class="el" href="dir_d3f19ff0a04e399251a83ecfb41c6c17.html">src</a></li><li class="navelem"><a class="el" href="work_software_2water_sense_2src_2main_8cpp.html">main.cpp</a></li>
+    <li class="navelem"><a class="el" href="dir_b363c367f15b22a3714f5a2d42078d41.html">workSoftware</a></li><li class="navelem"><a class="el" href="dir_10531bf2bfed4ad7d70bb1172b4d82aa.html">waterSense</a></li><li class="navelem"><a class="el" href="dir_d3f19ff0a04e399251a83ecfb41c6c17.html">src</a></li><li class="navelem"><a class="el" href="main_8cpp.html">main.cpp</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.3 </li>
   </ul>
 </div>

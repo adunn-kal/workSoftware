@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['fix_5fdelay_0',['FIX_DELAY',['../work_software_2water_sense_2src_2main_8cpp.html#a3afd9f7fa30603c0d00ac42c85661f65',1,'main.cpp']]]
+  ['gps_5fen_0',['GPS_EN',['../main_8cpp.html#a55ae23fa00da37869b8437650b112ba7',1,'main.cpp']]],
+  ['gps_5frx_1',['GPS_RX',['../main_8cpp.html#a8cd04b3645e97569755976b99fe190b8',1,'main.cpp']]],
+  ['gps_5ftx_2',['GPS_TX',['../main_8cpp.html#a05b958741e002c6dd8f8af174726665e',1,'main.cpp']]]
 ];

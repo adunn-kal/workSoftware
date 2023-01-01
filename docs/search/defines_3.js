@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['gps_5fen_0',['GPS_EN',['../work_software_2water_sense_2src_2main_8cpp.html#a55ae23fa00da37869b8437650b112ba7',1,'main.cpp']]],
-  ['gps_5frx_1',['GPS_RX',['../work_software_2water_sense_2src_2main_8cpp.html#a8cd04b3645e97569755976b99fe190b8',1,'main.cpp']]],
-  ['gps_5ftx_2',['GPS_TX',['../work_software_2water_sense_2src_2main_8cpp.html#a05b958741e002c6dd8f8af174726665e',1,'main.cpp']]]
+  ['measurement_5fperiod_0',['MEASUREMENT_PERIOD',['../main_8cpp.html#a25151a9f766101909d268f1f90a0fc1b',1,'main.cpp']]],
+  ['minute_5fallign_1',['MINUTE_ALLIGN',['../main_8cpp.html#a166ed06385da9f0bec567a6ffce7431c',1,'main.cpp']]]
 ];
