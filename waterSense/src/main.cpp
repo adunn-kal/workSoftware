@@ -39,7 +39,13 @@
 #define SLEEP_PERIOD 100 ///< Sleep task period in ms
 
 #define READ_TIME 20 ///< Length of time to measure in seconds
-#define MINUTE_ALLIGN 2 ///< Allignment time in minutes
+
+/**
+ * @brief The minute allignment to center measurements about
+ * @details If there is no GPS fix by the time the device goes to sleep, it will sleep for this amount of time
+ * 
+ */
+#define MINUTE_ALLIGN 2
 
 #define FIX_DELAY 120 ///< Seconds to wait for first GPS fix
 
